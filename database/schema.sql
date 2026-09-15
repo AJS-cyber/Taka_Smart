@@ -1,0 +1,27 @@
+CREATE DATABASE IF NOT EXISTS taka_smart CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE taka_smart;
+
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  description TEXT NOT NULL,
+  authority VARCHAR(100) NOT NULL,
+  location VARCHAR(255),
+  photo VARCHAR(500),
+  lat DECIMAL(10,7) NULL,
+  lng DECIMAL(10,7) NULL,
+  status ENUM('pending','in_progress','resolved') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS buyers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  description TEXT,
+  types JSON NOT NULL,
+  lat DECIMAL(10,7) NULL,
+  lng DECIMAL(10,7) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

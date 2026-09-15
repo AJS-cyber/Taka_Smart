@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TakaSmart - Usimamizi wa Taka</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{--primary:#2E7D32;--primary-light:#4CAF50;--primary-dark:#1B5E20;--secondary:#FF8F00;--accent:#00897B;--danger:#C62828;--bg:#F1F8E9;--card-bg:#FFF;--text:#212121;--text-light:#757575;--shadow:0 4px 20px rgba(0,0,0,.08);--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.navbar{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:0 30px;display:flex;align-items:center;justify-content:space-between;height:70px;box-shadow:0 4px 15px rgba(46,125,50,.3);position:sticky;top:0;z-index:100}
+.navbar .logo{display:flex;align-items:center;gap:12px;font-size:1.6rem;font-weight:800}
+.navbar .logo i{font-size:2rem;color:var(--secondary)}
+.navbar .nav-links{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.navbar .nav-links button{background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .3s;display:flex;align-items:center;gap:6px}
+.navbar .nav-links button:hover,.navbar .nav-links button.active{background:rgba(255,255,255,.3);transform:translateY(-1px)}
+.lang-select{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 12px;border-radius:8px;font-size:.85rem;cursor:pointer}
+.lang-select option{color:#333;background:#fff}
+.hero{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:50px 30px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 70%);animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.hero h1{font-size:2.5rem;font-weight:900;margin-bottom:12px;position:relative}
+.hero p{font-size:1.15rem;opacity:.9;max-width:600px;margin:0 auto 30px;position:relative}
+.hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;position:relative}
+.hero-actions button{padding:14px 30px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;border:none;transition:all .3s;display:flex;align-items:center;gap:8px}
+.hero-actions .btn-primary{background:var(--secondary);color:#fff;box-shadow:0 4px 15px rgba(255,143,0,.4)}
+.hero-actions .btn-secondary{background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.3)}
+.hero-actions button:hover{transform:translateY(-2px)}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:30px;max-width:1200px;margin:-30px auto 30px;position:relative;z-index:2}
+.stat-card{background:var(--card-bg);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow);border-left:4px solid var(--primary);transition:transform .3s}
+.stat-card:hover{transform:translateY(-4px)}
+.stat-card i{font-size:2rem;color:var(--primary);margin-bottom:8px}
+.stat-card .stat-number{font-size:2rem;font-weight:900;color:var(--primary-dark)}
+.stat-card .stat-label{font-size:.85rem;color:var(--text-light);margin-top:4px}
+.main-content{max-width:1200px;margin:0 auto;padding:0 30px 100px}
+.section{display:none}.section.active{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.6rem;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:10px;color:var(--primary-dark)}
+.section-title i{color:var(--secondary)}
+.section-desc{color:var(--text-light);margin-bottom:24px;font-size:.95rem}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .3s,box-shadow .3s}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.card-header{padding:20px 24px;background:linear-gradient(135deg,var(--primary-light),var(--primary));color:#fff;display:flex;align-items:center;gap:12px}
+.card-header i{font-size:1.5rem}.card-header h3{font-size:1.1rem;font-weight:700}
+.card-body{padding:24px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-weight:700;margin-bottom:6px;font-size:.9rem;color:var(--primary-dark)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 16px;border:2px solid #E0E0E0;border-radius:10px;font-size:.95rem;transition:border-color .3s;background:#FAFAFA}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+.btn{padding:12px 28px;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;border:none;transition:all .3s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(46,125,50,.3)}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px)}
+.photo-upload-area{border:3px dashed #C8E6C9;border-radius:var(--radius);padding:40px;text-align:center;background:#F9FBE7;cursor:pointer;transition:all .3s;position:relative}
+.photo-upload-area:hover{border-color:var(--primary);background:#F1F8E9}
+.photo-upload-area i{font-size:3rem;color:var(--primary);margin-bottom:12px}
+.photo-upload-area p{color:var(--text-light);font-size:.9rem}
+.photo-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo-preview{width:100%;max-height:250px;object-fit:cover;border-radius:12px;margin-top:12px;display:none}
+.photo-preview.show{display:block}
+.ai-result{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:2px solid var(--primary-light);border-radius:var(--radius);padding:24px;margin-top:20px;display:none}
+.ai-result.show{display:block;animation:fadeIn .5s ease}
+.waste-type-badge{display:inline-block;padding:6px 16px;border-radius:20px;font-weight:700;font-size:.85rem;margin:4px}
+.badge-plastic{background:#E3F2FD;color:#1565C0}.badge-paper{background:#FFF8E1;color:#F57F17}
+.badge-glass{background:#E8F5E9;color:#2E7D32}.badge-metal{background:#FBE9E7;color:#BF360C}
+.badge-organic{background:#F1F8E9;color:#33691E}.badge-ewaste{background:#F3E5F5;color:#6A1B9A}
+.badge-textile{background:#FFF3E0;color:#E65100}
+.recycle-steps{margin-top:16px}
+.recycle-steps .step{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;padding:10px;background:rgba(255,255,255,.7);border-radius:10px}
+.recycle-steps .step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0}
+.recycle-steps .step-text{font-size:.9rem;line-height:1.5}
+.map-container{height:400px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:16px 0;border:3px solid var(--primary-light)}
+.map-container #reportMap,.map-container #buyerMap{height:100%;width:100%}
+.location-info{background:#E8F5E9;padding:12px 16px;border-radius:10px;margin-top:12px;display:none;align-items:center;gap:10px;font-size:.9rem}
+.location-info.show{display:flex}.location-info i{color:var(--danger);font-size:1.2rem}
+.buyer-card{background:var(--card-bg);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:16px;align-items:center;border-left:4px solid var(--accent);transition:transform .3s}
+.buyer-card:hover{transform:translateX(4px)}
+.buyer-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--primary));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.4rem;flex-shrink:0}
+.buyer-info h4{font-size:1rem;font-weight:700;color:var(--primary-dark)}
+.buyer-info p{font-size:.85rem;color:var(--text-light);margin-top:4px}
+.buyer-info .buyer-types{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.buyer-info .buyer-types span{padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;background:#E8F5E9;color:var(--primary-dark)}
+.buyer-contact-btn{margin-left:auto;padding:8px 18px;border-radius:8px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-weight:600;font-size:.85rem;transition:all .3s;white-space:nowrap}
+.buyer-contact-btn:hover{background:var(--primary-dark)}
+.search-bar{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.search-bar input,.search-bar select{padding:12px 16px;border-radius:10px;border:2px solid #E0E0E0;font-size:.95rem;flex:1;min-width:180px;background:#fff}
+.search-bar input:focus,.search-bar select:focus{outline:none;border-color:var(--primary)}
+.reg-success{display:none;background:#E8F5E9;border:2px solid var(--primary);border-radius:var(--radius);padding:30px;text-align:center}
+.reg-success.show{display:block;animation:fadeIn .5s ease}
+.reg-success i{font-size:3rem;color:var(--primary);margin-bottom:12px}
+.reg-success h3{color:var(--primary-dark);margin-bottom:8px}
+.report-item{background:var(--card-bg);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:16px;border-left:4px solid var(--secondary)}
+.report-img{width:80px;height:80px;border-radius:10px;background:#E0E0E0;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.report-img img{width:100%;height:100%;object-fit:cover}.report-img i{font-size:2rem;color:var(--text-light)}
+.report-details h4{font-size:1rem;font-weight:700;color:var(--primary-dark)}
+.report-details p{font-size:.85rem;color:var(--text-light);margin-top:4px}
+.report-status{margin-left:auto;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:700;align-self:flex-start;white-space:nowrap}
+.status-pending{background:#FFF8E1;color:#F57F17}.status-progress{background:#E3F2FD;color:#1565C0}
+.status-resolved{background:#E8F5E9;color:#2E7D32}
+.chatbot-toggle{position:fixed;bottom:30px;right:30px;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;cursor:pointer;font-size:1.8rem;box-shadow:0 6px 25px rgba(46,125,50,.4);z-index:1000;transition:all .3s;display:flex;align-items:center;justify-content:center;animation:bounce 2s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.chatbot-toggle:hover{transform:scale(1.1);box-shadow:0 8px 35px rgba(46,125,50,.5)}
+.chatbot-toggle .badge{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:var(--secondary);color:#fff;font-size:.7rem;display:flex;align-items:center;justify-content:center;font-weight:800}
+.chatbot-window{position:fixed;bottom:110px;right:30px;width:380px;max-width:calc(100vw - 40px);height:520px;max-height:calc(100vh - 150px);background:var(--card-bg);border-radius:20px;box-shadow:0 10px 50px rgba(0,0,0,.2);z-index:999;display:none;flex-direction:column;overflow:hidden;animation:slideUp .3s ease}
+.chatbot-window.open{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.chat-header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.chat-header .chat-title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem}
+.chat-header .chat-title i{font-size:1.3rem}
+.chat-header .chat-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .3s}
+.chat-header .chat-close:hover{background:rgba(255,255,255,.4)}
+.chat-lang-bar{display:flex;gap:6px;padding:8px 16px;background:#F1F8E9;border-bottom:1px solid #E0E0E0;flex-wrap:wrap}
+.chat-lang-bar button{padding:4px 12px;border-radius:12px;border:1px solid #C8E6C9;background:#fff;font-size:.75rem;cursor:pointer;transition:all .2s;font-weight:600}
+.chat-lang-bar button.active,.chat-lang-bar button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-messages::-webkit-scrollbar{width:4px}.chat-messages::-webkit-scrollbar-thumb{background:#C8E6C9;border-radius:4px}
+.msg{max-width:80%;padding:12px 16px;border-radius:16px;font-size:.9rem;line-height:1.5;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-user{align-self:flex-end;background:linear-gradient(135deg,var(--primary-light),var(--primary));color:#fff;border-bottom-right-radius:4px}
+.msg-bot{align-self:flex-start;background:#F1F8E9;color:var(--text);border-bottom-left-radius:4px}
+.msg-bot .bot-icon{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.75rem;color:var(--primary);font-weight:700}
+.msg-bot .bot-icon i{font-size:.9rem}
+.chat-input-area{padding:12px 16px;border-top:1px solid #E0E0E0;display:flex;gap:8px;background:#FAFAFA}
+.chat-input-area input{flex:1;padding:10px 14px;border-radius:24px;border:2px solid #E0E0E0;font-size:.9rem;background:#fff}
+.chat-input-area input:focus{outline:none;border-color:var(--primary)}
+.chat-input-area button{width:42px;height:42px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .3s}
+.chat-input-area button:hover{background:var(--primary-dark)}
+.quick-questions{padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;background:#FAFAFA;border-top:1px solid #E0E0E0}
+.quick-questions button{padding:6px 12px;border-radius:14px;border:1px solid #C8E6C9;background:#fff;font-size:.75rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.quick-questions button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.toast{position:fixed;top:80px;right:30px;padding:16px 24px;border-radius:12px;color:#fff;font-weight:700;font-size:.9rem;z-index:2000;display:none;align-items:center;gap:10px;box-shadow:0 6px 25px rgba(0,0,0,.2);animation:slideIn .4s ease}
+.toast.show{display:flex}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+.toast-success{background:var(--primary)}.toast-info{background:var(--accent)}.toast-warning{background:var(--secondary)}
+@media(max-width:768px){.navbar{padding:0 16px}.navbar .logo{font-size:1.2rem}.navbar .nav-links{gap:4px}.navbar .nav-links button{padding:8px 12px;font-size:.8rem}.hero h1{font-size:1.8rem}.stats-bar{padding:16px}.main-content{padding:0 16px 100px}.chatbot-window{right:10px;bottom:100px;width:calc(100vw - 20px)}.cards-grid{grid-template-columns:1fr}.search-bar{flex-direction:column}}
+.leaflet-control-attribution{font-size:9px!important}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="logo"><i class="fas fa-recycle"></i><span>TakaSmart</span></div>
+  <div class="nav-links">
+    <button class="active" onclick="showSection('home')" id="nav-home"><i class="fas fa-home"></i> <span data-i18n="nav_home">Nyumbani</span></button>
+    <button onclick="showSection('report')" id="nav-report"><i class="fas fa-camera"></i> <span data-i18n="nav_report">Ripoti</span></button>
+    <button onclick="showSection('identify')" id="nav-identify"><i class="fas fa-search"></i> <span data-i18n="nav_identify">Tambua</span></button>
+    <button onclick="showSection('buyers')" id="nav-buyers"><i class="fas fa-store"></i> <span data-i18n="nav_buyers">Wananunua</span></button>
+    <button onclick="showSection('register')" id="nav-register"><i class="fas fa-user-plus"></i> <span data-i18n="nav_register">Jisajili</span></button>
+    <select class="lang-select" onchange="changeLang(this.value)" id="globalLang">
+      <option value="sw">🇹🇿 Kiswahili</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="fr">🇫🇷 Français</option>
+    </select>
+  </div>
+</nav>
+<section class="hero" id="section-home">
+  <h1 data-i18n="hero_title">🌍 TakaSmart – Usimamizi wa Taka kwa Ufasaha</h1>
+  <p data-i18n="hero_desc">Connect raia, mamlaka, na wananunua wa taka. Ripoti uchafu, tambua aina ya taka, na pata wananunua karibu nawe.</p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="showSection('report')"><i class="fas fa-camera"></i> <span data-i18n="hero_report">Ripoti Uchafu</span></button>
+    <button class="btn-secondary" onclick="showSection('identify')"><i class="fas fa-search"></i> <span data-i18n="hero_identify">Tambua Taka</span></button>
+    <button class="btn-secondary" onclick="showSection('buyers')"><i class="fas fa-store"></i> <span data-i18n="hero_buyers">Tafuta Wananunua</span></button>
+  </div>
+</section>
+<div class="stats-bar">
+  <div class="stat-card"><i class="fas fa-camera"></i><div class="stat-number" id="statReports">1,247</div><div class="stat-label" data-i18n="stat_reports">Ripoti Zilizowasilishwa</div></div>
+  <div class="stat-card"><i class="fas fa-check-circle"></i><div class="stat-number" id="statResolved">893</div><div class="stat-label" data-i18n="stat_resolved">Zimeitatuliwa</div></div>
+  <div class="stat-card"><i class="fas fa-store"></i><div class="stat-number" id="statBuyers">156</div><div class="stat-label" data-i18n="stat_buyers">Wananunua Waliosajiliwa</div></div>
+  <div class="stat-card"><i class="fas fa-recycle"></i><div class="stat-number">45 T</div><div class="stat-label" data-i18n="stat_recycled">Taka Zilizorecycle</div></div>
+</div>
+<div class="main-content">
+<section class="section" id="section-report">
+  <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="report_title">Ripoti Eneo Lenye Uchafu</span></h2>
+  <p class="section-desc" data-i18n="report_desc">Piga picha eneo lenye uchafu na tuma ripoti kwa mamlaka husika.</p>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-header"><i class="fas fa-camera"></i><h3 data-i18n="report_photo_title">Piga Picha</h3></div>
+      <div class="card-body">
+        <div class="photo-upload-area" id="reportUploadArea">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p data-i18n="report_upload_hint">Bofya hapa kuchukua picha au buruta faili</p>
+          <input type="file" accept="image/*" capture="environment" onchange="handleReportPhoto(this)">
+        </div>
+        <img class="photo-preview" id="reportPreview">
+        <div class="form-group"><label data-i18n="report_location_label">📍 Mahali</label><input type="text" id="reportLocation" placeholder="Dar es Salaam, Tanzania"></div>
+        <div class="form-group"><label data-i18n="report_desc_label">📝 Maelezo</label><textarea id="reportDesc" rows="3" placeholder="Eleza aina ya uchafu na hali ya eneo..."></textarea></div>
+        <div class="form-group"><label data-i18n="report_authority_label">🏛️ Mamlaka Husika</label>
+          <select id="reportAuthority">
+            <option value="">-- Chagua Mamlaka --</option>
+            <option value="municipal">Halmashauri ya Manispaa</option>
+            <option value="environment">Wizara ya Mazingira</option>
+            <option value="health">Idara ya Afya</option>
+            <option value="waste">Shirika la Taka</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="submitReport()" style="width:100%"><i class="fas fa-paper-plane"></i> <span data-i18n="report_submit">Tuma Ripoti</span></button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#00695C)"><i class="fas fa-map-marked-alt"></i><h3 data-i18n="report_map_title">Eneo kwenye Map</h3></div>
+      <div class="card-body">
+        <div class="map-container"><div id="reportMap"></div></div>
+        <div class="location-info" id="reportLocInfo"><i class="fas fa-map-marker-alt"></i><span id="reportLocText"></span></div>
+        <div style="margin-top:16px">
+          <h4 style="color:var(--primary-dark);margin-bottom:10px" data-i18n="report_recent">Ripoti za Hivi Karibuni</h4>
+          <div id="recentReports">
+            <div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>Uchafu wa Plastiki - Mto Msimbazi</h4><p>📍 -6.8234, 39.2678</p></div><span class="report-status status-progress">Inashughulikiwa</span></div>
+            <div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>Taka za Kisasa - Kariakoo</h4><p>📍 -6.8280, 39.2800</p></div><span class="report-status status-resolved">Imetatuliwa</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="section-identify">
+  <h2 class="section-title"><i class="fas fa-search-plus"></i> <span data-i18n="identify_title">Tambua Taka na Jinsi ya Kurecycle</span></h2>
+  <p class="section-desc" data-i18n="identify_desc">Piga picha ya taka na mfumo utambue aina yake na kupendekeza njia bora ya kurecycle.</p>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#F57F17)"><i class="fas fa-camera"></i><h3 data-i18n="identify_photo_title">Piga Picha ya Taka</h3></div>
+      <div class="card-body">
+        <div class="photo-upload-area" id="identifyUploadArea">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p data-i18n="identify_upload_hint">Bofya hapa kupiga picha ya taka</p>
+          <input type="file" accept="image/*" capture="environment" onchange="handleIdentifyPhoto(this)">
+        </div>
+        <img class="photo-preview" id="identifyPreview">
+        <div class="ai-result" id="aiResult"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#004D40)"><i class="fas fa-recycle"></i><h3 data-i18n="identify_recycle_title">Njia za Kurecycle</h3></div>
+      <div class="card-body">
+        <div style="text-align:center;padding:40px;color:var(--text-light)" id="recycleGuidePlaceholder">
+          <i class="fas fa-recycle" style="font-size:3rem;margin-bottom:10px"></i>
+          <p data-i18n="identify_recycle_hint">Piga picha ya taka kwanza ili kupata mapendekezo ya kurecycle</p>
+        </div>
+        <div id="recycleGuide" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="section-buyers">
+  <h2 class="section-title"><i class="fas fa-store"></i> <span data-i18n="buyers_title">Tafuta Wananunua wa Taka</span></h2>
+  <p class="section-desc" data-i18n="buyers_desc">Tafuta wananunua wa taka karibu nawe.</p>
+  <div class="search-bar">
+    <input type="text" id="buyerSearch" placeholder="Tafuta kwa jina au eneo..." oninput="filterBuyers()">
+    <select id="buyerTypeFilter" onchange="filterBuyers()">
+      <option value="all">Aina Zote</option>
+      <option value="plastic">🧴 Plastiki</option>
+      <option value="paper">📦 Karatasi</option>
+      <option value="glass">🍶 Kioo</option>
+      <option value="metal">🔩 Chuma</option>
+      <option value="organic">🍂 Kikolojia</option>
+      <option value="ewaste">💻 E-Waste</option>
+      <option value="textile">👕 Vazi/Nguo</option>
+    </select>
+  </div>
+  <div class="map-container"><div id="buyerMap"></div></div>
+  <div id="buyersList"></div>
+</section>
+<section class="section" id="section-register">
+  <h2 class="section-title"><i class="fas fa-user-plus"></i> <span data-i18n="register_title">Jisajili kama Mnunuzi wa Taka</span></h2>
+  <p class="section-desc" data-i18n="register_desc">Wewe ni mnunuzi wa taka? Jisajili hapa.</p>
+  <div class="card" id="regFormCard">
+    <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#E65100)"><i class="fas fa-user-plus"></i><h3 data-i18n="register_form_title">Fomu ya Usajili</h3></div>
+    <div class="card-body">
+      <div class="form-group"><label>👤 Jina la Biashara</label><input type="text" id="regName" placeholder="Mfano: GreenRecycle Ltd"></div>
+      <div class="form-group"><label>📧 Barua Pepe</label><input type="email" id="regEmail" placeholder="info@greenrecycle.co.tz"></div>
+      <div class="form-group"><label>📱 Simu</label><input type="tel" id="regPhone" placeholder="+255 7XX XXX XXX"></div>
+      <div class="form-group"><label>📍 Eneo</label><input type="text" id="regLocation" placeholder="Dar es Salaam, Kariakoo"></div>
+      <div class="form-group"><label>♻️ Aina za Taka Unazonunua</label>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="plastic"> 🧴 Plastiki</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="paper"> 📦 Karatasi</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="glass"> 🍶 Kioo</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="metal"> 🔩 Chuma</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="organic"> 🍂 Kikolojia</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="ewaste"> 💻 E-Waste</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="textile"> 👕 Vazi/Nguo</label>
+        </div>
+      </div>
+      <div class="form-group"><label>📝 Maelezo ya Biashara</label><textarea id="regDesc" rows="3" placeholder="Eleza biashara yako..."></textarea></div>
+      <button class="btn btn-primary" onclick="submitRegistration()" style="width:100%"><i class="fas fa-check-circle"></i> Jisajili Sasa</button>
+    </div>
+  </div>
+  <div class="reg-success" id="regSuccess">
+    <i class="fas fa-check-circle"></i>
+    <h3>Usajili Umefanikiwa!</h3>
+    <p style="margin:10px 0">Umefanikiwa kusajiliwa kama mnunuzi wa taka.</p>
+    <button class="btn btn-primary" onclick="showSection('buyers')"><i class="fas fa-store"></i> Tazama Wananunua</button>
+  </div>
+</section>
+</div>
+<button class="chatbot-toggle" onclick="toggleChat()" id="chatToggle">
+  <i class="fas fa-comments"></i>
+  <div class="badge">1</div>
+</button>
+<div class="chatbot-window" id="chatWindow">
+  <div class="chat-header">
+    <div class="chat-title"><i class="fas fa-robot"></i> TakaSmart Assistant</div>
+    <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-lang-bar">
+    <button class="active" onclick="setChatLang('sw',this)">🇹🇿 SW</button>
+    <button onclick="setChatLang('en',this)">🇬🇧 EN</button>
+    <button onclick="setChatLang('fr',this)">🇫🇷 FR</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="quick-questions" id="quickQuestions"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Andika swali lako..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var currentLang='sw',chatLang='sw',reportMap=null,buyerMap=null,reportMarker=null,buyerMarkers=[];
+var T={sw:{nav_home:'Nyumbani',nav_report:'Ripoti',nav_identify:'Tambua',nav_buyers:'Wananunua',nav_register:'Jisajili',hero_title:'🌍 TakaSmart – Usimamizi wa Taka kwa Ufasaha',hero_desc:'Connect raia, mamlaka, na wananunua wa taka. Ripoti uchafu, tambua aina ya taka, na pata wananunua karibu nawe.',hero_report:'Ripoti Uchafu',hero_identify:'Tambua Taka',hero_buyers:'Tafuta Wananunua',stat_reports:'Ripoti Zilizowasilishwa',stat_resolved:'Zimeitatuliwa',stat_buyers:'Wananunua Waliosajiliwa',stat_recycled:'Taka Zilizorecycle',report_title:'Ripoti Eneo Lenye Uchafu',report_desc:'Piga picha eneo lenye uchafu na tuma ripoti kwa mamlaka husika.',report_photo_title:'Piga Picha',report_upload_hint:'Bofya hapa kuchukua picha',report_location_label:'📍 Mahali',report_desc_label:'📝 Maelezo',report_authority_label:'🏛️ Mamlaka Husika',report_submit:'Tuma Ripoti',report_map_title:'Eneo kwenye Map',report_recent:'Ripoti za Hivi Karibuni',identify_title:'Tambua Taka na Jinsi ya Kurecycle',identify_desc:'Piga picha ya taka na mfumo utambue aina yake.',identify_photo_title:'Piga Picha ya Taka',identify_upload_hint:'Bofya hapa kupiga picha ya taka',identify_recycle_title:'Njia za Kurecycle',identify_recycle_hint:'Piga picha ya taka kwanza',buyers_title:'Tafuta Wananunua wa Taka',buyers_desc:'Tafuta wananunua wa taka karibu nawe.',register_title:'Jisajili kama Mnunuzi wa Taka',register_desc:'Wewe ni mnunuzi wa taka? Jisajili hapa.',register_form_title:'Fomu ya Usajili'},en:{nav_home:'Home',nav_report:'Report',nav_identify:'Identify',nav_buyers:'Buyers',nav_register:'Register',hero_title:'🌍 TakaSmart – Smart Waste Management',hero_desc:'Connect citizens, authorities, and waste buyers. Report waste, identify waste type, and find buyers near you.',hero_report:'Report Waste',hero_identify:'Identify Waste',hero_buyers:'Find Buyers',stat_reports:'Reports Submitted',stat_resolved:'Resolved',stat_buyers:'Registered Buyers',stat_recycled:'Waste Recycled',report_title:'Report a Waste Area',report_desc:'Take a photo of a waste area and submit to the relevant authority.',report_photo_title:'Take Photo',report_upload_hint:'Click here to take a photo',report_location_label:'📍 Location',report_desc_label:'📝 Description',report_authority_label:'🏛️ Relevant Authority',report_submit:'Submit Report',report_map_title:'Location on Map',report_recent:'Recent Reports',identify_title:'Identify Waste & How to Recycle',identify_desc:'Take a photo of waste and the system will identify its type.',identify_photo_title:'Take Photo of Waste',identify_upload_hint:'Click here to take a photo of waste',identify_recycle_title:'Recycling Methods',identify_recycle_hint:'Take a photo of waste first',buyers_title:'Find Waste Buyers',buyers_desc:'Find waste buyers near you.',register_title:'Register as a Waste Buyer',register_desc:'Are you a waste buyer? Register here.',register_form_title:'Registration Form'},fr:{nav_home:'Accueil',nav_report:'Signaler',nav_identify:'Identifier',nav_buyers:'Acheteurs',nav_register:"S'inscrire",hero_title:'🌍 TakaSmart – Gestion Intelligente des Déchets',hero_desc:'Connectez citoyens, autorités et acheteurs de déchets.',hero_report:'Signaler',hero_identify:'Identifier',hero_buyers:'Acheteurs',stat_reports:'Signalements',stat_resolved:'Résolus',stat_buyers:'Acheteurs Inscrits',stat_recycled:'Déchets Recyclés',report_title:'Signaler une Zone de Déchets',report_desc:"Prenez une photo d'une zone de déchets.",report_photo_title:'Prendre Photo',report_upload_hint:'Cliquez ici pour prendre une photo',report_location_label:'📍 Emplacement',report_desc_label:'📝 Description',report_authority_label:'🏛️ Autorité',report_submit:'Envoyer',report_map_title:'Carte',report_recent:'Signalements Récents',identify_title:'Identifier les Déchets & Recyclage',identify_desc:"Prenez une photo et le système identifiera le type.",identify_photo_title:'Photo des Déchets',identify_upload_hint:'Cliquez ici pour photographier',identify_recycle_title:'Méthodes de Recyclage',identify_recycle_hint:"Prenez d'abord une photo",buyers_title:'Trouver des Acheteurs',buyers_desc:'Trouvez des acheteurs près de chez vous.',register_title:"S'inscrire comme Acheteur",register_desc:"Inscrivez-vous ici.",register_form_title:"Formulaire d'Inscription"}};
+function t(k){return(T[currentLang]&&T[currentLang][k])||T.sw[k]||k}
+function changeLang(l){currentLang=l;document.querySelectorAll('[data-i18n]').forEach(function(e){e.textContent=t(e.getAttribute('data-i18n'))})}
+function showSection(n){document.getElementById('section-home').style.display=n==='home'?'':'none';document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});var sec=document.getElementById('section-'+n);if(sec)sec.classList.add('active');document.querySelectorAll('.nav-links button').forEach(function(b){b.classList.remove('active')});var nb=document.getElementById('nav-'+n);if(nb)nb.classList.add('active');if(n==='report'&&!reportMap)setTimeout(initReportMap,200);if(n==='buyers'&&!buyerMap)setTimeout(initBuyerMap,200);if(n==='buyers')setTimeout(renderBuyers,400);window.scrollTo({top:n==='home'?0:200,behavior:'smooth'});}
+function initReportMap(){reportMap=L.map('reportMap').setView([-6.7924,39.2083],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(reportMap);reportMap.on('click',function(e){if(reportMarker)reportMap.removeLayer(reportMarker);reportMarker=L.marker(e.latlng,{icon:L.divIcon({className:'',html:'<div style="font-size:2rem;color:#C62828"><i class="fas fa-map-marker-alt"></i></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(reportMap);document.getElementById('reportLocation').value=e.latlng.lat.toFixed(4)+', '+e.latlng.lng.toFixed(4);document.getElementById('reportLocInfo').classList.add('show');document.getElementById('reportLocText').textContent='Lat: '+e.latlng.lat.toFixed(4)+', Lng: '+e.latlng.lng.toFixed(4);});if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){reportMap.setView([p.coords.latitude,p.coords.longitude],14)});setTimeout(function(){reportMap.invalidateSize()},500);}
+function initBuyerMap(){buyerMap=L.map('buyerMap').setView([-6.7924,39.2083],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(buyerMap);if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){buyerMap.setView([p.coords.latitude,p.coords.longitude],13)});setTimeout(function(){buyerMap.invalidateSize()},500);}
+function handleReportPhoto(input){if(input.files&&input.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById('reportPreview').src=e.target.result;document.getElementById('reportPreview').classList.add('show');document.getElementById('reportUploadArea').style.display='none';if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){if(reportMap){reportMap.setView([p.coords.latitude,p.coords.longitude],15);if(reportMarker)reportMap.removeLayer(reportMarker);reportMarker=L.marker([p.coords.latitude,p.coords.longitude],{icon:L.divIcon({className:'',html:'<div style="font-size:2rem;color:#C62828"><i class="fas fa-map-marker-alt"></i></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(reportMap);document.getElementById('reportLocation').value=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);document.getElementById('reportLocInfo').classList.add('show');document.getElementById('reportLocText').textContent='Lat: '+p.coords.latitude.toFixed(4)+', Lng: '+p.coords.longitude.toFixed(4);}});};r.readAsDataURL(input.files[0]);}}
+function submitReport(){var desc=document.getElementById('reportDesc').value;var auth=document.getElementById('reportAuthority').value;var loc=document.getElementById('reportLocation').value;if(!desc||!auth){showToast('⚠️ Tafadhali jaza maelezo na chagua mamlaka','warning');return}showToast('✅ Ripoti imetumwa kwa mamlaka husika!','success');var d=document.getElementById('recentReports');var now=new Date();var st=currentLang==='en'?'Pending':currentLang==='fr'?'En attente':'Inasubiri';d.insertAdjacentHTML('afterbegin','<div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>'+desc.substring(0,50)+'</h4><p>📍 '+loc+'</p></div><span class="report-status status-pending">'+st+'</span></div>');var s=document.getElementById('statReports');s.textContent=(parseInt(s.textContent.replace(/,/g,''))+1).toLocaleString();document.getElementById('reportDesc').value='';document.getElementById('reportAuthority').value='';document.getElementById('reportPreview').classList.remove('show');document.getElementById('reportUploadArea').style.display='';}
+var wasteDB=[{type:'Plastiki',typeEn:'Plastic',typeFr:'Plastique',badge:'badge-plastic',icon:'🧴',desc:{sw:'Hii ni taka ya plastiki. Plastiki inaweza kuchukua miaka 100+ kuoza.',en:'This is plastic waste. Plastic can take 100+ years to decompose.',fr:'Ceci est un déchet plastique.'},steps:{sw:['Safisha chupa - ondoa mabaki ya chakula','Tenganisha kwa aina: PET, HDPE, PVC','Bana/kunja ili kupunguza ukubwa','Peleka kwenye kituo cha kukusanya plastiki','Au uuze kwa wananunua kwenye platform'],en:['Clean bottles - remove food residue','Separate by type: PET, HDPE, PVC','Crush to reduce size','Take to a plastic collection center','Or sell to plastic buyers on the platform'],fr:['Nettoyez les bouteilles','Séparez par type: PET, HDPE, PVC','Écrasez pour réduire la taille','Apportez à un centre de collecte','Ou vendez aux acheteurs']}},{type:'Karatasi',typeEn:'Paper',typeFr:'Papier',badge:'badge-paper',icon:'📦',desc:{sw:'Hii ni taka ya karatasi. Karatasi inaweza kurecyclewa hadi mara 5-7.',en:'This is paper waste. Paper can be recycled 5-7 times.',fr:'Ceci est un déchet papier.'},steps:{sw:['Tenganisha karatasi kutoka kwa taka nyingine','Ondoa karatasi zenye mafuta/chemikali','Bana karatasi ili kurahisisha usafirishaji','Pekeleke kwenye kituo cha kukusanya karatasi','Karatasi nzito na kadibodi zina thamani zaidi'],en:['Separate paper from other waste','Remove oily/chemical paper','Flatten paper for easy transport','Take to paper collection center','Heavy paper and cardboard have more value'],fr:['Séparez le papier','Retirez le papier huileux','Aplatissez le papier','Apportez à un centre de collecte','Le papier épais a plus de valeur']}},{type:'Kioo',typeEn:'Glass',typeFr:'Verre',badge:'badge-glass',icon:'🍶',desc:{sw:'Hii ni taka ya kioo. Kioo kinaweza kurecyclewa bila kupoteza ubora.',en:'This is glass waste. Glass can be recycled without losing quality.',fr:'Ceci est un déchet de verre.'},steps:{sw:['Kaa kwa usalama - kioo kinaweza kukatiza','Tenganisha kwa rangi','Ondoa matope na mabaki','Usichanganye kioo na aina nyingine za taka','Pekeleke kwenye kituo cha kukusanya kioo'],en:['Handle safely - glass can cut','Separate by color','Remove dirt and residue','Do not mix glass with other waste','Take to glass collection center'],fr:['Manipulez avec précaution','Séparez par couleur','Retirez la saleté','Ne mélangez pas','Apportez à un centre de collecte']}},{type:'Chuma',typeEn:'Metal',typeFr:'Métal',badge:'badge-metal',icon:'🔩',desc:{sw:'Hii ni taka ya chuma. Chuma cha aluminium kinaweza kurecyclewa ndani ya wiki 2.',en:'This is metal waste. Aluminium can be recycled within 2 weeks.',fr:'Ceci est un déchet métallique.'},steps:{sw:['Tenganisha chuma tofauti: felesi, aluminium, shaba','Ondoa vifaa visivyo cha chuma','Safisha chuma cha kutu','Bana/kunja chuma ili kupunguza ukubwa','Uza kwa wananunua wa chuma - ina thamani kubwa'],en:['Separate different metals','Remove non-metal parts','Clean rusty metal','Crush to reduce size','Sell to metal buyers - high value'],fr:['Séparez les métaux','Retirez les parties non métalliques','Nettoyez le métal rouillé','Écrasez','Vendez aux acheteurs']}},{type:'Kikolojia',typeEn:'Organic',typeFr:'Organique',badge:'badge-organic',icon:'🍂',desc:{sw:'Hii ni taka ya kikolojia. Inaweza kutumika kutengeneza mbolea ya komposti.',en:'This is organic waste. It can be used to make compost.',fr:'Ceci est un déchet organique.'},steps:{sw:['Tenganisha taka za kikolojia kutoka kwa taka nyingine','Tia kwenye mashimo ya komposti','Changanya na majani na udongo','Geuza mara kwa mara kwa hewa','Baada ya miezi 2-3 utapata mbolea nzuri'],en:['Separate organic waste','Put in compost pit','Mix with leaves and soil','Turn regularly','After 2-3 months you get good fertilizer'],fr:['Séparez les déchets organiques','Mettez dans une fosse à compost','Mélangez avec des feuilles','Retournez régulièrement','Après 2-3 mois: bon engrais']}},{type:'E-Waste',typeEn:'E-Waste',typeFr:'Déchets électroniques',badge:'badge-ewaste',icon:'💻',desc:{sw:'Hii ni taka ya elektroniki. E-waste ina metali zenye thamani lakini ni hatari.',en:'This is electronic waste. Contains valuable metals but is hazardous.',fr:'Ceci est un déchet électronique.'},steps:{sw:['Usituachie e-waste kwenye mazingira - ni hatari!','Toa bateri na vifaa vya hatari kwa usalama','Tenganisha vifaa kwa aina','Peleke kwenye kituo cha e-waste kilichoidhinishwa','Au uuze kwa wananunua wa e-waste waliosajiliwa'],en:['Do not dump e-waste - hazardous!','Remove batteries safely','Separate devices by type','Take to certified e-waste center','Sell to registered e-waste buyers'],fr:['Ne jetez pas!','Retirez les batteries','Séparez par type','Apportez à un centre certifié','Vendez aux acheteurs certifiés']}},{type:'Vazi/Nguo',typeEn:'Textile',typeFr:'Textile',badge:'badge-textile',icon:'👕',desc:{sw:'Hii ni taka ya nguo. Nguo za zamani zinaweza kutumika tena au kurecyclewa.',en:'This is textile waste. Old clothes can be reused or recycled.',fr:'Ceci est un déchet textile.'},steps:{sw:['Tenganisha nguo zenye kufaa na zilizochakaa','Zile zenye kufaa: zawadi kwa misada au uze','Zilizochakaa: weka kwa vitengo vya uchakavu','Baadhi ya nguo zinaweza kutumika kama mbolea','Nguo za pamba ni rahisi kurecyclewa zaidi'],en:['Separate wearable and worn-out clothes','Wearable: donate or sell','Worn-out: textile recycling','Some fabrics can be composted','Cotton is easiest to recycle'],fr:['Séparez les vêtements portables et usés','Portables: donnez ou vendez','Usés: recyclage textile','Certains tissus: compost','Le coton est le plus facile à recycler']}}];
+function handleIdentifyPhoto(input){if(input.files&&input.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById('identifyPreview').src=e.target.result;document.getElementById('identifyPreview').classList.add('show');document.getElementById('identifyUploadArea').style.display='none';simulateIdentify();};r.readAsDataURL(input.files[0]);}}
+function simulateIdentify(){var lang=currentLang;var w=wasteDB[Math.floor(Math.random()*wasteDB.length)];var tn=lang==='en'?w.typeEn:lang==='fr'?w.typeFr:w.type;var ds=w.desc[lang]||w.desc.sw;var st=w.steps[lang]||w.steps.sw;var rl=lang==='en'?'Recycling Steps':lang==='fr'?'Étapes de Recyclage':'Hatua za Kurecycle';var fl=lang==='en'?'Find Buyers for This Waste':lang==='fr'?'Trouver des Acheteurs':'Tafuta Wananunua wa Taka Hii';var stepsHTML=st.map(function(s,i){return '<div class="step"><div class="step-num">'+(i+1)+'</div><div class="step-text">'+s+'</div></div>'}).join('');document.getElementById('aiResult').innerHTML='<h4><i class="fas fa-robot"></i> AI Imetambua:</h4><p style="margin-bottom:12px">'+ds+'</p><div style="margin-bottom:12px"><span class="waste-type-badge '+w.badge+'">'+w.icon+' '+tn+'</span></div><div class="recycle-steps"><h4 style="color:var(--primary-dark);margin-bottom:10px"><i class="fas fa-recycle"></i> '+rl+':</h4>'+stepsHTML+'</div><button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="showSection(\'buyers\')"><i class="fas fa-store"></i> '+fl+'</button>';document.getElementById('aiResult').classList.add('show');document.getElementById('recycleGuide').innerHTML='<div style="margin-bottom:16px"><span class="waste-type-badge '+w.badge+'" style="font-size:1rem;padding:8px 20px">'+w.icon+' '+tn+'</span></div>'+stepsHTML;document.getElementById('recycleGuide').style.display='block';document.getElementById('recycleGuidePlaceholder').style.display='none';showToast('🔍 Aina ya taka imetambuliwa!','info');}
+var buyersData=[{name:'GreenRecycle Ltd',location:'Dar es Salaam, Kariakoo',types:['plastic','paper'],lat:-6.828,lng:39.280,phone:'+255 712 345 678'},{name:'MetalWorks TZ',location:'Dar es Salaam, Ubungo',types:['metal','ewaste'],lat:-6.780,lng:39.265,phone:'+255 713 456 789'},{name:'EcoGlass Tanzania',location:'Dar es Salaam, Kinondoni',types:['glass'],lat:-6.800,lng:39.240,phone:'+255 714 567 890'},{name:'OrganicPlus',location:'Dar es Salaam, Temeke',types:['organic'],lat:-6.850,lng:39.290,phone:'+255 715 678 901'},{name:'TakaBora',location:'Dar es Salaam, Ilala',types:['plastic','metal','paper'],lat:-6.815,lng:39.270,phone:'+255 716 789 012'},{name:'TextileRevive',location:'Dar es Salaam, Mwananyamala',types:['textile'],lat:-6.790,lng:39.255,phone:'+255 717 890 123'},{name:'E-Waste Solutions',location:'Dar es Salaam, Mikocheni',types:['ewaste'],lat:-6.770,lng:39.245,phone:'+255 718 901 234'},{name:'PlastiKwanza',location:'Dar es Salaam, Mbagala',types:['plastic'],lat:-6.860,lng:39.270,phone:'+255 719 012 345'},{name:'PaperTrail TZ',location:'Dar es Salaam, Upanga',types:['paper','textile'],lat:-6.810,lng:39.260,phone:'+255 720 123 456'},{name:'ScrapMasters',location:'Dar es Salaam, Buguruni',types:['metal'],lat:-6.840,lng:39.275,phone:'+255 721 234 567'}];
+function renderBuyers(){var tf=document.getElementById('buyerTypeFilter').value;var sf=(document.getElementById('buyerSearch').value||'').toLowerCase();var f=buyersData;if(tf!=='all')f=f.filter(function(b){return b.types.indexOf(tf)!==-1});if(sf)f=f.filter(function(b){return b.name.toLowerCase().indexOf(sf)!==-1||b.location.toLowerCase().indexOf(sf)!==-1});buyerMarkers.forEach(function(m){if(buyerMap)buyerMap.removeLayer(m)});buyerMarkers=[];var list=document.getElementById('buyersList');list.innerHTML='';if(!f.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light)"><i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;display:block"></i><p>Hakuna wananunua walioapatikana</p></div>';return}var tl={plastic:{sw:'Plastiki',en:'Plastic',fr:'Plastique'},paper:{sw:'Karatasi',en:'Paper',fr:'Papier'},glass:{sw:'Kioo',en:'Glass',fr:'Verre'},metal:{sw:'Chuma',en:'Metal',fr:'Métal'},organic:{sw:'Kikolojia',en:'Organic',fr:'Organique'},ewaste:{sw:'E-Waste',en:'E-Waste',fr:'Électronique'},textile:{sw:'Vazi/Nguo',en:'Textile',fr:'Textile'}};var cl=currentLang==='en'?'Contact':currentLang==='fr'?'Contacter':'Wasiliana';f.forEach(function(b){if(buyerMap){var mk=L.marker([b.lat,b.lng],{icon:L.divIcon({className:'',html:'<div style="background:#2E7D32;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.3);border:2px solid #fff"><i class="fas fa-store"></i></div>',iconSize:[32,32],iconAnchor:[16,16]})}).addTo(buyerMap).bindPopup('<b>'+b.name+'</b><br>'+b.location);buyerMarkers.push(mk);}var ts=b.types.map(function(t){return '<span>'+(tl[t]&&tl[t][currentLang]||tl[t]&&tl[t].sw||t)+'</span>'}).join('');list.innerHTML+='<div class="buyer-card"><div class="buyer-avatar"><i class="fas fa-store"></i></div><div class="buyer-info"><h4>'+b.name+'</h4><p>📍 '+b.location+' &bull; 📞 '+b.phone+'</p><div class="buyer-types">'+ts+'</div></div><button class="buyer-contact-btn" onclick="contactBuyer(\''+b.name+'\')"><i class="fas fa-phone"></i> '+cl+'</button></div>';});}
+function filterBuyers(){if(!buyerMap){initBuyerMap();setTimeout(renderBuyers,500);return}renderBuyers()}
+function contactBuyer(n){showToast('📞 Unawasiliana na '+n+'...','info')}
+function submitRegistration(){var n=document.getElementById('regName').value;var e=document.getElementById('regEmail').value;var p=document.getElementById('regPhone').value;if(!n||!e||!p){showToast('⚠️ Tafadhali jaza fomu kikamilifu','warning');return}document.getElementById('regFormCard').style.display='none';document.getElementById('regSuccess').classList.add('show');showToast('✅ Usajili umefanikiwa!','success');var s=document.getElementById('statBuyers');s.textContent=parseInt(s.textContent)+1;}
+var CR={sw:{welcome:'Jambo! 👋 Mimi ni TakaSmart Assistant. Niko hapa kukusaidia kuhusu usimamizi wa taka. 🌿',qs:['Jinsi ya kurecycle plastiki?','Aina za taka ni zipi?','Ninapataje mnunuzi?','Jinsi ya kutumia platform?'],r:{plastik:'🧴 <b>Kuhusu Plastiki:</b><br><br>1. <b>Tenganisha</b> plastiki kwa aina: PET, HDPE, PVC<br>2. <b>Safisha</b> kabla ya kurecycle<br>3. <b>Bana</b> chupa ili kupunguza ukubwa<br>4. <b>Pekeleke</b> kwenye kituo cha kukusanya plastiki<br>5. <b>Uze</b> kwa wananunua kwenye "Wananunua"<br><br>💡 PET ina thamani zaidi!',recycle:'♻️ <b>Jinsi ya Kurecycle:</b><br><br>1. <b>Tambua</b> aina ya taka<br>2. <b>Tenganisha</b> taka kwa aina zao<br>3. <b>Safisha</b> taka kabla ya kurecycle<br>4. <b>Pata mnunuzi</b> kwenye "Wananunua"<br>5. <b>Au peleke</b> kwenye kituo cha kukusanya taka<br><br>🌍 Kila mtu anaweza kuchangia!',aina:'📋 <b>Aina za Taka:</b><br><br>1. 🧴 <b>Plastiki</b> - Chupa, mifuko, vyungu<br>2. 📦 <b>Karatasi</b> - Sanduku, gazeti<br>3. 🍶 <b>Kioo</b> - Chupa, dirisha<br>4. 🔩 <b>Chuma</b> - Felesi, aluminium, shaba<br>5. 🍂 <b>Kikolojia</b> - Mabaki ya chakula<br>6. 💻 <b>E-Waste</b> - Simu, kompyuta, TV<br>7. 👕 <b>Vazi/Nguo</b> - Nguo za zamani',mnunuzi:'🏪 <b>Kupata Mnunuzi:</b><br><br>1. Nenda kwenye <b>"Wananunua"</b><br>2. <b>Chagua</b> aina ya taka unayotaka kuuza<br>3. <b>Tafuta</b> wananunua karibu na eneo lako<br>4. <b>Wasiliana</b> na mnunuzi moja kwa moja<br>5. <b>Kubaliana</b> kwenye bei na usafirishaji',platform:'📱 <b>Jinsi ya Kutumia Platform:</b><br><br>🔧 <b>Ripoti Uchafu</b> - Piga picha na tuma kwa mamlaka<br>🔍 <b>Tambua Taka</b> - Piga picha na jua aina ya taka<br>🏪 <b>Wananunua</b> - Tafuta na uwasiliane na wananunua<br>📝 <b>Jisajili</b> - Jiunge kama mnunuzi<br>💬 <b>Chat</b> - Niulize maswali yoyete!<br><br>🌍 TakaSmart inaunganisha raia, mamlaka, na wananunua!',uchafu:'🚯 <b>Kuhusu Uchafu:</b><br><br>1. <b>Ripoti</b> eneo lenye uchafu<br>2. <b>Tambua</b> aina ya uchafu<br>3. <b>Pata wananunua</b> wa taka hiyo<br>4. <b>Shiriki</b> na jirani zako',mazingira:'🌍 <b>Kuhusu Mazingira:</b><br><br>- Plastiki inachukua miaka 100+ kuoza<br>- Kioo kinaweza kurecyclewa bila kikomo<br>- Aluminium kinaweza kurecyclewa ndani ya wiki 2<br>- Taka za kikolojia zinaweza kuwa mbolea',komposti:'🍂 <b>Kuhusu Komposti:</b><br><br>1. Kusanya mabaki ya chakula na majani<br>2. Tia kwenye shimoni au chombo<br>3. Changanya na majani kavu na udongo<br>4. Geuza mara kwa mara<br>5. Baada ya miezi 2-3 utapata mbolea!',default:'🤔 Asante kwa swali lako! Jaribu kuuliza kuhusu: plastiki, recycle, aina za taka, mnunuzi, au jinsi ya kutumia platform.'}},en:{welcome:'Hello! 👋 I am TakaSmart Assistant. I can help you with waste management. 🌿',qs:['How to recycle plastic?','What are the waste types?','How to find a buyer?','How to use the platform?'],r:{plast:'🧴 <b>About Plastic:</b><br><br>1. <b>Separate</b> by type: PET, HDPE, PVC<br>2. <b>Clean</b> before recycling<br>3. <b>Crush</b> bottles to reduce size<br>4. <b>Take</b> to a collection center<br>5. <b>Sell</b> to buyers on the platform<br><br>💡 PET has the most recycling value!',recycle:'♻️ <b>How to Recycle:</b><br><br>1. <b>Identify</b> waste type<br>2. <b>Separate</b> waste by type<br>3. <b>Clean</b> waste before recycling<br>4. <b>Find buyers</b> in "Buyers" section<br>5. <b>Or take</b> to a collection center',type:'📋 <b>Waste Types:</b><br><br>1. 🧴 <b>Plastic</b> - Bottles, bags<br>2. 📦 <b>Paper</b> - Boxes, cardboard<br>3. 🍶 <b>Glass</b> - Bottles, windows<br>4. 🔩 <b>Metal</b> - Iron, aluminium, copper<br>5. 🍂 <b>Organic</b> - Food scraps, leaves<br>6. 💻 <b>E-Waste</b> - Phones, computers, TVs<br>7. 👕 <b>Textile</b> - Old clothes',buyer:'🏪 <b>Finding a Buyer:</b><br><br>1. Go to <b>"Buyers"</b> section<br>2. <b>Select</b> waste type<br>3. <b>Search</b> for buyers near you<br>4. <b>Contact</b> the buyer directly<br>5. <b>Agree</b> on price and pickup',platform:'📱 <b>How to Use the Platform:</b><br><br>🔧 <b>Report Waste</b> - Photo and send to authorities<br>🔍 <b>Identify Waste</b> - Photo and learn waste type<br>🏪 <b>Buyers</b> - Find and contact waste buyers<br>📝 <b>Register</b> - Join as a waste buyer<br>💬 <b>Chat</b> - Ask me any questions!',waste:'🚯 <b>About Waste:</b><br><br>1. <b>Report</b> waste areas<br>2. <b>Identify</b> waste type<br>3. <b>Find buyers</b> for that waste<br>4. <b>Share</b> with neighbors',compost:'🍂 <b>About Composting:</b><br><br>1. Collect food scraps and leaves<br>2. Put in a compost bin<br>3. Mix with dry leaves and soil<br>4. Turn regularly<br>5. After 2-3 months: natural fertilizer!',default:'🤔 Thanks for your question! Try asking about: plastic, recycling, waste types, buyers, or how to use the platform.'}},fr:{welcome:"Bonjour! 👋 Je suis l'assistant TakaSmart. 🌿",qs:['Comment recycler le plastique?','Types de déchets?','Comment trouver un acheteur?','Comment utiliser la plateforme?'],r:{plast:"🧴 <b>Plastique:</b><br><br>1. <b>Séparez</b> par type: PET, HDPE, PVC<br>2. <b>Nettoyez</b> avant recyclage<br>3. <b>Écrasez</b> les bouteilles<br>4. <b>Apportez</b> à un centre de collecte<br>5. <b>Vendez</b> aux acheteurs",recycl:"♻️ <b>Comment Recycler:</b><br><br>1. <b>Identifiez</b> le type de déchets<br>2. <b>Séparez</b> par type<br>3. <b>Nettoyez</b> avant recyclage<br>4. <b>Trouvez</b> des acheteurs<br>5. <b>Ou apportez</b> à un centre de collecte",type:"📋 <b>Types de Déchets:</b><br><br>1. 🧴 <b>Plastique</b><br>2. 📦 <b>Papier</b><br>3. 🍶 <b>Verre</b><br>4. 🔩 <b>Métal</b><br>5. 🍂 <b>Organique</b><br>6. 💻 <b>Électronique</b><br>7. 👕 <b>Textile</b>",acheteur:"🏪 <b>Trouver un Acheteur:</b><br><br>1. Allez à <b>\"Acheteurs\"</b><br>2. <b>Sélectionnez</b> le type de déchets<br>3. <b>Recherchez</b> des acheteurs proches<br>4. <b>Contactez</b> l'acheteur<br>5. <b>Convenez</b> du prix",plateforme:"📱 <b>Utiliser la Plateforme:</b><br><br>🔧 <b>Signaler</b> - Photo et envoyez<br>🔍 <b>Identifier</b> - Photo des déchets<br>🏪 <b>Acheteurs</b> - Trouvez des acheteurs<br>📝 <b>S'inscrire</b> - Devenez acheteur<br>💬 <b>Chat</b> - Posez des questions!",default:"🤔 Merci! Essayez de demander sur: plastique, recyclage, types de déchets, acheteurs."}}};
+function setChatLang(l,btn){chatLang=l;document.querySelectorAll('.chat-lang-bar button').forEach(function(b){b.classList.remove('active')});if(btn)btn.classList.add('active');document.getElementById('chatMessages').innerHTML='';addBotMsg(CR[chatLang].welcome);renderQQ();}
+function toggleChat(){var w=document.getElementById('chatWindow');w.classList.toggle('open');var b=document.getElementById('chatToggle');var bd=b.querySelector('.badge');if(bd)bd.remove();if(w.classList.contains('open')&&!document.getElementById('chatMessages').children.length){addBotMsg(CR[chatLang].welcome);renderQQ();}}
+function renderQQ(){var qs=CR[chatLang].qs||[];var c=document.getElementById('quickQuestions');c.innerHTML=qs.map(function(q){return '<button onclick="sendQQ(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</button>'}).join('');}
+function addBotMsg(txt){var m=document.getElementById('chatMessages');var d=document.createElement('div');d.className='msg msg-bot';d.innerHTML='<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div><div>'+txt+'</div>';m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function addUserMsg(txt){var m=document.getElementById('chatMessages');var d=document.createElement('div');d.className='msg msg-user';d.textContent=txt;m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function processChat(input){var txt=input.toLowerCase();var rs=CR[chatLang].r;var matched=false;for(var k in rs){if(k!=='default'&&txt.indexOf(k)!==-1){addBotMsg(rs[k]);matched=true;break;}}if(!matched)addBotMsg(rs.default||'🤔...');}
+function sendChat(){var inp=document.getElementById('chatInput');var txt=inp.value.trim();if(!txt)return;addUserMsg(txt);inp.value='';var m=document.getElementById('chatMessages');var tp=document.createElement('div');tp.className='msg msg-bot';tp.id='typing';tp.innerHTML='<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div><div style="opacity:.6"><i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite .2s"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite .4s"></i></div>';m.appendChild(tp);m.scrollTop=m.scrollHeight;setTimeout(function(){tp.remove();processChat(txt)},800);}
+function sendQQ(q){document.getElementById('chatInput').value=q;sendChat();}
+function showToast(msg,type){var t=document.getElementById('toast');t.className='toast show toast-'+type;t.innerHTML=msg;setTimeout(function(){t.classList.remove('show')},4000);}
+document.addEventListener('DOMContentLoaded',function(){showSection('home')});
+</script>
+</body>
+</html>
