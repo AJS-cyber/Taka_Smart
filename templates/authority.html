@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TakaSmart Authority Portal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<nav class="navbar">
+  <div class="logo"><i class="fas fa-recycle"></i><span>TakaSmart</span></div>
+  <div class="nav-links">
+    <select class="lang-select" onchange="changeLang(this.value)" id="authorityLang">
+      <option value="sw">🇹🇿 Kiswahili</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="fr">🇫🇷 Français</option>
+    </select>
+  </div>
+</nav>
+
+<main class="portal-page">
+  <a class="back-link" href="/"><i class="fas fa-arrow-left"></i> <span data-i18n="admin_back">Rudi TakaSmart</span></a>
+
+  <h1><i class="fas fa-landmark"></i> <span data-i18n="authority_portal">Portal ya Mamlaka</span></h1>
+  <p data-i18n="authority_intro">Halmashauri, wizara, idara na mashirika ya taka zinaweza kuingia na kusimamia ripoti zao hapa.</p>
+
+  <!-- ── Tabs ── -->
+  <div class="portal-tabs">
+    <button class="portal-tab active" id="authoritySignInTab" onclick="showAuthorityAuth('signin')">
+      <i class="fas fa-right-to-bracket"></i> <span data-i18n="tab_signin">Ingia</span>
+    </button>
+    <button class="portal-tab" id="authoritySignUpTab" onclick="showAuthorityAuth('signup')">
+      <i class="fas fa-user-plus"></i> <span data-i18n="tab_signup">Jisajili</span>
+    </button>
+  </div>
+
+  <!-- ── Sign-in form ── -->
+  <section class="card portal-form active" id="authoritySignInForm">
+    <div class="card-body">
+      <h2 data-i18n="authority_signin_title">Ingia kwenye portal</h2>
+      <div class="form-group">
+        <label data-i18n="label_username">Jina la mtumiaji / Email</label>
+        <input type="text" id="authorityLoginUsername" autocomplete="username" data-i18n-placeholder="label_authority_email">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_password">Nenosiri</label>
+        <input type="password" id="authorityLoginPassword" autocomplete="current-password" data-i18n-placeholder="label_password">
+      </div>
+      <button class="btn btn-primary" onclick="authorityLogin()">
+        <i class="fas fa-right-to-bracket"></i> <span data-i18n="btn_signin">Ingia</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Sign-up form ── -->
+  <section class="card portal-form" id="authoritySignUpForm">
+    <div class="card-body">
+      <h2 data-i18n="authority_signup_title">Jisajili mamlaka</h2>
+      <div class="form-group">
+        <label data-i18n="label_authority_name">Jina la mamlaka/idara</label>
+        <input type="text" id="authorityName" data-i18n-placeholder="label_authority_name">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_authority_type">Aina</label>
+        <select id="authorityType">
+          <option value="municipal"    data-i18n-opt="municipal">Halmashauri ya Manispaa</option>
+          <option value="environment"  data-i18n-opt="environment">Wizara ya Mazingira</option>
+          <option value="health"       data-i18n-opt="health">Idara ya Afya</option>
+          <option value="waste"        data-i18n-opt="waste">Shirika la Taka</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_authority_email">Email ya kuingia</label>
+        <input type="email" id="authorityEmail" autocomplete="email" data-i18n-placeholder="label_authority_email">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_authority_phone">Simu</label>
+        <input type="tel" id="authorityPhone" placeholder="+255 7XX XXX XXX">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_authority_location">Eneo</label>
+        <input type="text" id="authorityLocation" data-i18n-placeholder="location_placeholder">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_description">Maelezo</label>
+        <textarea id="authorityDescription" rows="3" data-i18n-placeholder="business_placeholder"></textarea>
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_password">Nenosiri</label>
+        <input type="password" id="authorityPassword" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" onclick="submitAuthority()">
+        <i class="fas fa-user-plus"></i> <span data-i18n="btn_create_account">Fungua akaunti</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Dashboard ── -->
+  <section id="authorityPanel" style="display:none">
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#1565C0,#0D47A1)">
+        <i class="fas fa-tachometer-alt"></i>
+        <h3 data-i18n="authority_dashboard_title">Dashibodi ya Mamlaka</h3>
+      </div>
+      <div class="card-body">
+        <h2 id="authorityDisplayName" style="margin-bottom:4px"></h2>
+        <p class="portal-note">
+          <span data-i18n="authority_dept_label">Idara:</span>
+          <strong id="authorityDisplayType">-</strong>
+        </p>
+        <h3 style="margin-top:20px" data-i18n="authority_duties_title">Majukumu</h3>
+        <div id="authorityTasks"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-header" style="background:linear-gradient(135deg,#2E7D32,#1B5E20)">
+        <i class="fas fa-list-check"></i>
+        <h3 data-i18n="authority_reports_title">Ripoti za Mamlaka Hii</h3>
+      </div>
+      <div class="card-body">
+        <p class="portal-note">
+          <span data-i18n="authority_pending_label">Ripoti mpya zinazosubiri:</span>
+          <strong id="authorityPendingCount">0</strong>
+        </p>
+        <div id="authorityReports"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js', v='20261001') }}"></script>
+</body>
+</html>

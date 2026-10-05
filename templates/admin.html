@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TakaSmart Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+<style>
+  /* ── Tab switcher ── */
+  .login-tabs { display:flex; gap:0; margin-bottom:0; border-bottom:2px solid #e0e0e0; }
+  .login-tab  { flex:1; padding:12px 16px; background:none; border:none; border-bottom:3px solid transparent;
+                cursor:pointer; font-size:.95rem; font-weight:600; color:var(--text-light); transition:.2s; }
+  .login-tab.active { color:#1565C0; border-bottom-color:#1565C0; }
+  .login-tab:hover:not(.active) { background:#f5f7ff; }
+  .login-form-panel { display:none; }
+  .login-form-panel.active { display:block; }
+
+  /* ── Admin task grid ── */
+  .admin-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin:20px 0; }
+  .admin-task-card { background:#fff; border-radius:12px; padding:20px 18px;
+                     box-shadow:0 2px 8px rgba(0,0,0,.08); border-left:5px solid var(--primary); }
+  .admin-task-card .task-icon { font-size:2rem; margin-bottom:10px; }
+  .admin-task-card h4 { margin:0 0 6px; font-size:1rem; color:var(--text-dark); }
+  .admin-task-card p  { margin:0; font-size:.85rem; color:var(--text-light); line-height:1.4; }
+  .admin-task-card.red   { border-left-color:#C62828; }
+  .admin-task-card.blue  { border-left-color:#1565C0; }
+  .admin-task-card.green { border-left-color:#2E7D32; }
+  .admin-task-card.orange{ border-left-color:#E65100; }
+  .admin-task-card.teal  { border-left-color:#00695C; }
+  .admin-task-card.purple{ border-left-color:#6A1B9A; }
+
+  /* ── User table ── */
+  .user-table { width:100%; border-collapse:collapse; margin-top:16px; font-size:.9rem; }
+  .user-table th { background:#f5f5f5; padding:10px 12px; text-align:left; font-weight:600; border-bottom:2px solid #e0e0e0; }
+  .user-table td { padding:10px 12px; border-bottom:1px solid #eee; vertical-align:middle; }
+  .user-table tr:hover td { background:#fafafa; }
+  .role-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:.78rem; font-weight:600; }
+  .role-admin    { background:#fce4ec; color:#C62828; }
+  .role-reporter { background:#e3f2fd; color:#1565C0; }
+  .role-buyer    { background:#e8f5e9; color:#2E7D32; }
+  .role-authority{ background:#fff8e1; color:#E65100; }
+  .role-support  { background:#f3e5f5; color:#6A1B9A; }
+
+  /* ── Edit modal ── */
+  .edit-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);
+                z-index:1000; align-items:center; justify-content:center; }
+  .edit-modal.open { display:flex; }
+  .edit-modal-box { background:#fff; border-radius:14px; padding:28px 24px;
+                    width:100%; max-width:420px; max-height:90vh; overflow-y:auto;
+                    box-shadow:0 8px 32px rgba(0,0,0,.18); }
+  .edit-modal-box h3 { margin:0 0 20px; font-size:1.1rem; }
+  .modal-close { float:right; background:none; border:none; font-size:1.2rem; cursor:pointer; color:#888; margin-top:-4px; }
+
+  /* ── User dashboard ── */
+  .user-welcome { background:linear-gradient(135deg,#1565C0,#0D47A1); color:#fff;
+                  border-radius:12px; padding:22px 24px; margin-bottom:20px; }
+  .user-welcome h2 { margin:0 0 4px; font-size:1.3rem; }
+  .user-welcome p  { margin:0; opacity:.85; font-size:.9rem; }
+  .user-info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+  .user-info-card { background:#fff; border-radius:10px; padding:16px;
+                    box-shadow:0 2px 8px rgba(0,0,0,.07); text-align:center; }
+  .user-info-card .ui-icon { font-size:1.8rem; margin-bottom:8px; }
+  .user-info-card .ui-val  { font-size:1.3rem; font-weight:700; color:var(--primary-dark); }
+  .user-info-card .ui-lbl  { font-size:.8rem; color:var(--text-light); margin-top:2px; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="logo"><i class="fas fa-recycle"></i><span>TakaSmart</span></div>
+  <div class="nav-links">
+    <select class="lang-select" onchange="changeLang(this.value)" id="adminLang">
+      <option value="sw">🇹🇿 Kiswahili</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="fr">🇫🇷 Français</option>
+    </select>
+  </div>
+</nav>
+
+<main class="portal-page">
+  <a class="back-link" href="/"><i class="fas fa-arrow-left"></i> <span data-i18n="admin_back">Rudi TakaSmart</span></a>
+  <h1><i class="fas fa-shield-halved"></i> <span data-i18n="admin_title">Portal ya Admin</span></h1>
+  <p data-i18n="admin_intro">Sehemu hii ni ya msimamizi wa mfumo pekee.</p>
+
+  <!-- ══════════════════════════════════════════════
+       LOGIN SECTION  (tabs: Admin | User)
+  ══════════════════════════════════════════════ -->
+  <div class="card" id="loginSection">
+    <div class="login-tabs">
+      <button class="login-tab active" id="tabAdmin" onclick="switchLoginTab('admin')">
+        <i class="fas fa-shield-halved"></i> <span data-i18n="admin_title">Admin</span>
+      </button>
+      <button class="login-tab" id="tabUser" onclick="switchLoginTab('user')">
+        <i class="fas fa-user"></i> <span data-i18n="user_login_title">Ingia kama Mtumiaji</span>
+      </button>
+    </div>
+
+    <!-- Admin login -->
+    <div class="card-body login-form-panel active" id="adminLoginForm">
+      <div class="form-group">
+        <label data-i18n="label_username">Jina la mtumiaji</label>
+        <input type="text" id="adminUsername" data-i18n-placeholder="label_username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_password">Nenosiri</label>
+        <input type="password" id="adminPassword" data-i18n-placeholder="label_password" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="adminLogin()">
+        <i class="fas fa-right-to-bracket"></i> <span data-i18n="admin_login_btn">Ingia</span>
+      </button>
+    </div>
+
+    <!-- User login -->
+    <div class="card-body login-form-panel" id="userLoginForm">
+      <p style="color:var(--text-light);font-size:.88rem;margin:0 0 16px" data-i18n="user_login_hint">
+        Ingia kwa akaunti iliyoundwa na msimamizi.
+      </p>
+      <div class="form-group">
+        <label data-i18n="user_login_label">Username au Email</label>
+        <input type="text" id="userLoginUsername" data-i18n-placeholder="user_login_label" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_password">Nenosiri</label>
+        <input type="password" id="userLoginPassword" data-i18n-placeholder="label_password" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')userLogin()">
+      </div>
+      <button class="btn btn-primary" onclick="userLogin()">
+        <i class="fas fa-right-to-bracket"></i> <span data-i18n="admin_login_btn">Ingia</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       ADMIN PANEL  (full admin dashboard)
+  ══════════════════════════════════════════════ -->
+  <div id="adminPanel" style="display:none">
+    <div class="cards-grid" id="adminStats" style="margin-bottom:0"></div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-header" style="background:linear-gradient(135deg,#1565C0,#0D47A1)">
+        <i class="fas fa-tasks"></i>
+        <h3 id="adminTasksTitle">Kazi za Msimamizi</h3>
+      </div>
+      <div class="card-body">
+        <div class="admin-grid" id="adminTaskCards"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-header" style="background:linear-gradient(135deg,#2E7D32,#1B5E20)">
+        <i class="fas fa-users"></i>
+        <h3 data-i18n="user_management">Usimamizi wa Watumiaji</h3>
+      </div>
+      <div class="card-body">
+        <div style="background:#f5f7ff;border-radius:10px;padding:18px;margin-bottom:20px">
+          <h4 style="margin:0 0 14px;color:#1565C0">
+            <i class="fas fa-user-plus"></i>
+            <span data-i18n="btn_create_user">Unda Mtumiaji Mpya</span>
+          </h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+            <div class="form-group" style="margin:0">
+              <label data-i18n="label_username" style="font-size:.85rem">Jina la mtumiaji</label>
+              <input type="text" id="userUsername" data-i18n-placeholder="label_username">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label data-i18n="email" style="font-size:.85rem">Barua Pepe</label>
+              <input type="email" id="userEmail" placeholder="user@example.com">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label data-i18n="label_password" style="font-size:.85rem">Nenosiri</label>
+              <input type="password" id="userPassword">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label data-i18n="label_role" style="font-size:.85rem">Wadhifa</label>
+              <select id="userRole">
+                <option value="admin">🛡️ Admin</option>
+                <option value="reporter">📸 Reporter</option>
+                <option value="buyer">🏪 Buyer</option>
+                <option value="authority">🏛️ Authority</option>
+                <option value="support">🛠️ Support</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="createAdminUser()" style="margin-top:14px">
+            <i class="fas fa-user-plus"></i> <span data-i18n="btn_create_user">Unda Mtumiaji</span>
+          </button>
+        </div>
+        <div id="adminUsers"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" style="margin-top:16px" onclick="adminLogout()">
+      <i class="fas fa-right-from-bracket"></i> <span data-i18n="admin_logout">Toka</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       USER PANEL  (for non-admin users logged in)
+  ══════════════════════════════════════════════ -->
+  <div id="userPanel" style="display:none">
+
+    <!-- Welcome card -->
+    <div class="user-welcome" id="userWelcomeCard">
+      <h2 id="userWelcomeName">—</h2>
+      <p id="userWelcomeRole">—</p>
+    </div>
+
+    <!-- Info cards -->
+    <div class="user-info-grid" id="userInfoGrid"></div>
+
+    <!-- Role-specific content -->
+    <div id="userRoleContent"></div>
+
+    <button class="btn btn-secondary" style="margin-top:16px" onclick="userLogout()">
+      <i class="fas fa-right-from-bracket"></i> <span data-i18n="admin_logout">Toka</span>
+    </button>
+  </div>
+
+</main>
+
+<!-- ── Edit User Modal ── -->
+<div class="edit-modal" id="editUserModal">
+  <div class="edit-modal-box">
+    <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-user-pen"></i> <span id="editModalTitle">Hariri Mtumiaji</span></h3>
+    <input type="hidden" id="editUserId">
+    <div class="form-group">
+      <label data-i18n="label_username">Jina la mtumiaji</label>
+      <input type="text" id="editUsername">
+    </div>
+    <div class="form-group">
+      <label data-i18n="email">Barua Pepe</label>
+      <input type="email" id="editEmail">
+    </div>
+    <div class="form-group">
+      <label data-i18n="label_role">Wadhifa</label>
+      <select id="editRole">
+        <option value="admin">🛡️ Admin</option>
+        <option value="reporter">📸 Reporter</option>
+        <option value="buyer">🏪 Buyer</option>
+        <option value="authority">🏛️ Authority</option>
+        <option value="support">🛠️ Support</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label id="editPwdLabel">Nenosiri Jipya (acha wazi kubaki sawa)</label>
+      <input type="password" id="editPassword" placeholder="••••••••">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEditUser()">
+        <i class="fas fa-check"></i> <span id="editSaveLabel">Hifadhi</span>
+      </button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeEditModal()">
+        <i class="fas fa-times"></i> <span id="editCancelLabel">Ghairi</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js', v='20261001') }}"></script>
+</body>
+</html>

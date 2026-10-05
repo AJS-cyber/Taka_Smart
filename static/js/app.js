@@ -1,81 +1,141 @@
-var currentLang='sw',chatLang='sw',reportMap=null,buyerMap=null,reportMarker=null,buyerMarkers=[];
-var T={sw:{nav_home:'Nyumbani',nav_report:'Ripoti',nav_identify:'Tambua',nav_buyers:'Wananunua',nav_register:'Jisajili',hero_title:'🌍 TakaSmart – Usimamizi wa Taka kwa Ufasaha',hero_desc:'Connect raia, mamlaka, na wananunua wa taka. Ripoti uchafu, tambua aina ya taka, na pata wananunua karibu nawe.',hero_report:'Ripoti Uchafu',hero_identify:'Tambua Taka',hero_buyers:'Tafuta Wananunua',stat_reports:'Ripoti Zilizowasilishwa',stat_resolved:'Zimeitatuliwa',stat_buyers:'Wananunua Waliosajiliwa',stat_recycled:'Taka Zilizorecycle',report_title:'Ripoti Eneo Lenye Uchafu',report_desc:'Piga picha eneo lenye uchafu na tuma ripoti kwa mamlaka husika.',report_photo_title:'Piga Picha',report_upload_hint:'Bofya hapa kuchukua picha',report_location_label:'📍 Mahali',report_desc_label:'📝 Maelezo',report_authority_label:'🏛️ Mamlaka Husika',report_submit:'Tuma Ripoti',report_map_title:'Eneo kwenye Map',report_recent:'Ripoti za Hivi Karibuni',identify_title:'Tambua Taka na Jinsi ya Kurecycle',identify_desc:'Piga picha ya taka na mfumo utambue aina yake.',identify_photo_title:'Piga Picha ya Taka',identify_upload_hint:'Bofya hapa kupiga picha ya taka',identify_recycle_title:'Njia za Kurecycle',identify_recycle_hint:'Piga picha ya taka kwanza',buyers_title:'Tafuta Wananunua wa Taka',buyers_desc:'Tafuta wananunua wa taka karibu nawe.',register_title:'Jisajili kama Mnunuzi wa Taka',register_desc:'Wewe ni mnunuzi wa taka? Jisajili hapa.',register_form_title:'Fomu ya Usajili'},en:{nav_home:'Home',nav_report:'Report',nav_identify:'Identify',nav_buyers:'Buyers',nav_register:'Register',hero_title:'🌍 TakaSmart – Smart Waste Management',hero_desc:'Connect citizens, authorities, and waste buyers. Report waste, identify waste type, and find buyers near you.',hero_report:'Report Waste',hero_identify:'Identify Waste',hero_buyers:'Find Buyers',stat_reports:'Reports Submitted',stat_resolved:'Resolved',stat_buyers:'Registered Buyers',stat_recycled:'Waste Recycled',report_title:'Report a Waste Area',report_desc:'Take a photo of a waste area and submit to the relevant authority.',report_photo_title:'Take Photo',report_upload_hint:'Click here to take a photo',report_location_label:'📍 Location',report_desc_label:'📝 Description',report_authority_label:'🏛️ Relevant Authority',report_submit:'Submit Report',report_map_title:'Location on Map',report_recent:'Recent Reports',identify_title:'Identify Waste & How to Recycle',identify_desc:'Take a photo of waste and the system will identify its type.',identify_photo_title:'Take Photo of Waste',identify_upload_hint:'Click here to take a photo of waste',identify_recycle_title:'Recycling Methods',identify_recycle_hint:'Take a photo of waste first',buyers_title:'Find Waste Buyers',buyers_desc:'Find waste buyers near you.',register_title:'Register as a Waste Buyer',register_desc:'Are you a waste buyer? Register here.',register_form_title:'Registration Form'},fr:{nav_home:'Accueil',nav_report:'Signaler',nav_identify:'Identifier',nav_buyers:'Acheteurs',nav_register:"S'inscrire",hero_title:'🌍 TakaSmart – Gestion Intelligente des Déchets',hero_desc:'Connectez citoyens, autorités et acheteurs de déchets.',hero_report:'Signaler',hero_identify:'Identifier',hero_buyers:'Acheteurs',stat_reports:'Signalements',stat_resolved:'Résolus',stat_buyers:'Acheteurs Inscrits',stat_recycled:'Déchets Recyclés',report_title:'Signaler une Zone de Déchets',report_desc:"Prenez une photo d'une zone de déchets.",report_photo_title:'Prendre Photo',report_upload_hint:'Cliquez ici pour prendre une photo',report_location_label:'📍 Emplacement',report_desc_label:'📝 Description',report_authority_label:'🏛️ Autorité',report_submit:'Envoyer',report_map_title:'Carte',report_recent:'Signalements Récents',identify_title:'Identifier les Déchets & Recyclage',identify_desc:"Prenez une photo et le système identifiera le type.",identify_photo_title:'Photo des Déchets',identify_upload_hint:'Cliquez ici pour photographier',identify_recycle_title:'Méthodes de Recyclage',identify_recycle_hint:"Prenez d'abord une photo",buyers_title:'Trouver des Acheteurs',buyers_desc:'Trouvez des acheteurs près de chez vous.',register_title:"S'inscrire comme Acheteur",register_desc:"Inscrivez-vous ici.",register_form_title:"Formulaire d'Inscription"}};
-function t(k){return(T[currentLang]&&T[currentLang][k])||T.sw[k]||k}
-function changeLang(l){currentLang=l;document.querySelectorAll('[data-i18n]').forEach(function(e){e.textContent=t(e.getAttribute('data-i18n'))})}
-function showSection(n){document.getElementById('section-home').style.display=n==='home'?'':'none';document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});var sec=document.getElementById('section-'+n);if(sec)sec.classList.add('active');document.querySelectorAll('.nav-links button').forEach(function(b){b.classList.remove('active')});var nb=document.getElementById('nav-'+n);if(nb)nb.classList.add('active');if(n==='report'&&!reportMap)setTimeout(initReportMap,200);if(n==='buyers'&&!buyerMap)setTimeout(initBuyerMap,200);if(n==='buyers')setTimeout(renderBuyers,400);window.scrollTo({top:n==='home'?0:200,behavior:'smooth'});}
-function initReportMap(){reportMap=L.map('reportMap').setView([-6.7924,39.2083],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(reportMap);reportMap.on('click',function(e){if(reportMarker)reportMap.removeLayer(reportMarker);reportMarker=L.marker(e.latlng,{icon:L.divIcon({className:'',html:'<div style="font-size:2rem;color:#C62828"><i class="fas fa-map-marker-alt"></i></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(reportMap);document.getElementById('reportLocation').value=e.latlng.lat.toFixed(4)+', '+e.latlng.lng.toFixed(4);document.getElementById('reportLocInfo').classList.add('show');document.getElementById('reportLocText').textContent='Lat: '+e.latlng.lat.toFixed(4)+', Lng: '+e.latlng.lng.toFixed(4);});if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){reportMap.setView([p.coords.latitude,p.coords.longitude],14)});setTimeout(function(){reportMap.invalidateSize()},500);}
-function initBuyerMap(){buyerMap=L.map('buyerMap').setView([-6.7924,39.2083],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(buyerMap);if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){buyerMap.setView([p.coords.latitude,p.coords.longitude],13)});setTimeout(function(){buyerMap.invalidateSize()},500);}
-function handleReportPhoto(input){if(input.files&&input.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById('reportPreview').src=e.target.result;document.getElementById('reportPreview').classList.add('show');document.getElementById('reportUploadArea').style.display='none';if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){if(reportMap){reportMap.setView([p.coords.latitude,p.coords.longitude],15);if(reportMarker)reportMap.removeLayer(reportMarker);reportMarker=L.marker([p.coords.latitude,p.coords.longitude],{icon:L.divIcon({className:'',html:'<div style="font-size:2rem;color:#C62828"><i class="fas fa-map-marker-alt"></i></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(reportMap);document.getElementById('reportLocation').value=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);document.getElementById('reportLocInfo').classList.add('show');document.getElementById('reportLocText').textContent='Lat: '+p.coords.latitude.toFixed(4)+', Lng: '+p.coords.longitude.toFixed(4);}});};r.readAsDataURL(input.files[0]);}}
-function submitReport(){var desc=document.getElementById('reportDesc').value;var auth=document.getElementById('reportAuthority').value;var loc=document.getElementById('reportLocation').value;if(!desc||!auth){showToast('⚠️ Tafadhali jaza maelezo na chagua mamlaka','warning');return}showToast('✅ Ripoti imetumwa kwa mamlaka husika!','success');var d=document.getElementById('recentReports');var now=new Date();var st=currentLang==='en'?'Pending':currentLang==='fr'?'En attente':'Inasubiri';d.insertAdjacentHTML('afterbegin','<div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>'+desc.substring(0,50)+'</h4><p>📍 '+loc+'</p></div><span class="report-status status-pending">'+st+'</span></div>');var s=document.getElementById('statReports');s.textContent=(parseInt(s.textContent.replace(/,/g,''))+1).toLocaleString();document.getElementById('reportDesc').value='';document.getElementById('reportAuthority').value='';document.getElementById('reportPreview').classList.remove('show');document.getElementById('reportUploadArea').style.display='';}
-var wasteDB=[{type:'Plastiki',typeEn:'Plastic',typeFr:'Plastique',badge:'badge-plastic',icon:'🧴',desc:{sw:'Hii ni taka ya plastiki. Plastiki inaweza kuchukua miaka 100+ kuoza.',en:'This is plastic waste. Plastic can take 100+ years to decompose.',fr:'Ceci est un déchet plastique.'},steps:{sw:['Safisha chupa - ondoa mabaki ya chakula','Tenganisha kwa aina: PET, HDPE, PVC','Bana/kunja ili kupunguza ukubwa','Peleka kwenye kituo cha kukusanya plastiki','Au uuze kwa wananunua kwenye platform'],en:['Clean bottles - remove food residue','Separate by type: PET, HDPE, PVC','Crush to reduce size','Take to a plastic collection center','Or sell to plastic buyers on the platform'],fr:['Nettoyez les bouteilles','Séparez par type: PET, HDPE, PVC','Écrasez pour réduire la taille','Apportez à un centre de collecte','Ou vendez aux acheteurs']}},{type:'Karatasi',typeEn:'Paper',typeFr:'Papier',badge:'badge-paper',icon:'📦',desc:{sw:'Hii ni taka ya karatasi. Karatasi inaweza kurecyclewa hadi mara 5-7.',en:'This is paper waste. Paper can be recycled 5-7 times.',fr:'Ceci est un déchet papier.'},steps:{sw:['Tenganisha karatasi kutoka kwa taka nyingine','Ondoa karatasi zenye mafuta/chemikali','Bana karatasi ili kurahisisha usafirishaji','Pekeleke kwenye kituo cha kukusanya karatasi','Karatasi nzito na kadibodi zina thamani zaidi'],en:['Separate paper from other waste','Remove oily/chemical paper','Flatten paper for easy transport','Take to paper collection center','Heavy paper and cardboard have more value'],fr:['Séparez le papier','Retirez le papier huileux','Aplatissez le papier','Apportez à un centre de collecte','Le papier épais a plus de valeur']}},{type:'Kioo',typeEn:'Glass',typeFr:'Verre',badge:'badge-glass',icon:'🍶',desc:{sw:'Hii ni taka ya kioo. Kioo kinaweza kurecyclewa bila kupoteza ubora.',en:'This is glass waste. Glass can be recycled without losing quality.',fr:'Ceci est un déchet de verre.'},steps:{sw:['Kaa kwa usalama - kioo kinaweza kukatiza','Tenganisha kwa rangi','Ondoa matope na mabaki','Usichanganye kioo na aina nyingine za taka','Pekeleke kwenye kituo cha kukusanya kioo'],en:['Handle safely - glass can cut','Separate by color','Remove dirt and residue','Do not mix glass with other waste','Take to glass collection center'],fr:['Manipulez avec précaution','Séparez par couleur','Retirez la saleté','Ne mélangez pas','Apportez à un centre de collecte']}},{type:'Chuma',typeEn:'Metal',typeFr:'Métal',badge:'badge-metal',icon:'🔩',desc:{sw:'Hii ni taka ya chuma. Chuma cha aluminium kinaweza kurecyclewa ndani ya wiki 2.',en:'This is metal waste. Aluminium can be recycled within 2 weeks.',fr:'Ceci est un déchet métallique.'},steps:{sw:['Tenganisha chuma tofauti: felesi, aluminium, shaba','Ondoa vifaa visivyo cha chuma','Safisha chuma cha kutu','Bana/kunja chuma ili kupunguza ukubwa','Uza kwa wananunua wa chuma - ina thamani kubwa'],en:['Separate different metals','Remove non-metal parts','Clean rusty metal','Crush to reduce size','Sell to metal buyers - high value'],fr:['Séparez les métaux','Retirez les parties non métalliques','Nettoyez le métal rouillé','Écrasez','Vendez aux acheteurs']}},{type:'Kikolojia',typeEn:'Organic',typeFr:'Organique',badge:'badge-organic',icon:'🍂',desc:{sw:'Hii ni taka ya kikolojia. Inaweza kutumika kutengeneza mbolea ya komposti.',en:'This is organic waste. It can be used to make compost.',fr:'Ceci est un déchet organique.'},steps:{sw:['Tenganisha taka za kikolojia kutoka kwa taka nyingine','Tia kwenye mashimo ya komposti','Changanya na majani na udongo','Geuza mara kwa mara kwa hewa','Baada ya miezi 2-3 utapata mbolea nzuri'],en:['Separate organic waste','Put in compost pit','Mix with leaves and soil','Turn regularly','After 2-3 months you get good fertilizer'],fr:['Séparez les déchets organiques','Mettez dans une fosse à compost','Mélangez avec des feuilles','Retournez régulièrement','Après 2-3 mois: bon engrais']}},{type:'E-Waste',typeEn:'E-Waste',typeFr:'Déchets électroniques',badge:'badge-ewaste',icon:'💻',desc:{sw:'Hii ni taka ya elektroniki. E-waste ina metali zenye thamani lakini ni hatari.',en:'This is electronic waste. Contains valuable metals but is hazardous.',fr:'Ceci est un déchet électronique.'},steps:{sw:['Usituachie e-waste kwenye mazingira - ni hatari!','Toa bateri na vifaa vya hatari kwa usalama','Tenganisha vifaa kwa aina','Peleke kwenye kituo cha e-waste kilichoidhinishwa','Au uuze kwa wananunua wa e-waste waliosajiliwa'],en:['Do not dump e-waste - hazardous!','Remove batteries safely','Separate devices by type','Take to certified e-waste center','Sell to registered e-waste buyers'],fr:['Ne jetez pas!','Retirez les batteries','Séparez par type','Apportez à un centre certifié','Vendez aux acheteurs certifiés']}},{type:'Vazi/Nguo',typeEn:'Textile',typeFr:'Textile',badge:'badge-textile',icon:'👕',desc:{sw:'Hii ni taka ya nguo. Nguo za zamani zinaweza kutumika tena au kurecyclewa.',en:'This is textile waste. Old clothes can be reused or recycled.',fr:'Ceci est un déchet textile.'},steps:{sw:['Tenganisha nguo zenye kufaa na zilizochakaa','Zile zenye kufaa: zawadi kwa misada au uze','Zilizochakaa: weka kwa vitengo vya uchakavu','Baadhi ya nguo zinaweza kutumika kama mbolea','Nguo za pamba ni rahisi kurecyclewa zaidi'],en:['Separate wearable and worn-out clothes','Wearable: donate or sell','Worn-out: textile recycling','Some fabrics can be composted','Cotton is easiest to recycle'],fr:['Séparez les vêtements portables et usés','Portables: donnez ou vendez','Usés: recyclage textile','Certains tissus: compost','Le coton est le plus facile à recycler']}}];
-function handleIdentifyPhoto(input){if(input.files&&input.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById('identifyPreview').src=e.target.result;document.getElementById('identifyPreview').classList.add('show');document.getElementById('identifyUploadArea').style.display='none';simulateIdentify();};r.readAsDataURL(input.files[0]);}}
-function simulateIdentify(){var lang=currentLang;var w=wasteDB[Math.floor(Math.random()*wasteDB.length)];var tn=lang==='en'?w.typeEn:lang==='fr'?w.typeFr:w.type;var ds=w.desc[lang]||w.desc.sw;var st=w.steps[lang]||w.steps.sw;var rl=lang==='en'?'Recycling Steps':lang==='fr'?'Étapes de Recyclage':'Hatua za Kurecycle';var fl=lang==='en'?'Find Buyers for This Waste':lang==='fr'?'Trouver des Acheteurs':'Tafuta Wananunua wa Taka Hii';var stepsHTML=st.map(function(s,i){return '<div class="step"><div class="step-num">'+(i+1)+'</div><div class="step-text">'+s+'</div></div>'}).join('');document.getElementById('aiResult').innerHTML='<h4><i class="fas fa-robot"></i> AI Imetambua:</h4><p style="margin-bottom:12px">'+ds+'</p><div style="margin-bottom:12px"><span class="waste-type-badge '+w.badge+'">'+w.icon+' '+tn+'</span></div><div class="recycle-steps"><h4 style="color:var(--primary-dark);margin-bottom:10px"><i class="fas fa-recycle"></i> '+rl+':</h4>'+stepsHTML+'</div><button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="showSection(\'buyers\')"><i class="fas fa-store"></i> '+fl+'</button>';document.getElementById('aiResult').classList.add('show');document.getElementById('recycleGuide').innerHTML='<div style="margin-bottom:16px"><span class="waste-type-badge '+w.badge+'" style="font-size:1rem;padding:8px 20px">'+w.icon+' '+tn+'</span></div>'+stepsHTML;document.getElementById('recycleGuide').style.display='block';document.getElementById('recycleGuidePlaceholder').style.display='none';showToast('🔍 Aina ya taka imetambuliwa!','info');}
-var buyersData=[{name:'GreenRecycle Ltd',location:'Dar es Salaam, Kariakoo',types:['plastic','paper'],lat:-6.828,lng:39.280,phone:'+255 712 345 678'},{name:'MetalWorks TZ',location:'Dar es Salaam, Ubungo',types:['metal','ewaste'],lat:-6.780,lng:39.265,phone:'+255 713 456 789'},{name:'EcoGlass Tanzania',location:'Dar es Salaam, Kinondoni',types:['glass'],lat:-6.800,lng:39.240,phone:'+255 714 567 890'},{name:'OrganicPlus',location:'Dar es Salaam, Temeke',types:['organic'],lat:-6.850,lng:39.290,phone:'+255 715 678 901'},{name:'TakaBora',location:'Dar es Salaam, Ilala',types:['plastic','metal','paper'],lat:-6.815,lng:39.270,phone:'+255 716 789 012'},{name:'TextileRevive',location:'Dar es Salaam, Mwananyamala',types:['textile'],lat:-6.790,lng:39.255,phone:'+255 717 890 123'},{name:'E-Waste Solutions',location:'Dar es Salaam, Mikocheni',types:['ewaste'],lat:-6.770,lng:39.245,phone:'+255 718 901 234'},{name:'PlastiKwanza',location:'Dar es Salaam, Mbagala',types:['plastic'],lat:-6.860,lng:39.270,phone:'+255 719 012 345'},{name:'PaperTrail TZ',location:'Dar es Salaam, Upanga',types:['paper','textile'],lat:-6.810,lng:39.260,phone:'+255 720 123 456'},{name:'ScrapMasters',location:'Dar es Salaam, Buguruni',types:['metal'],lat:-6.840,lng:39.275,phone:'+255 721 234 567'}];
-function renderBuyers(){var tf=document.getElementById('buyerTypeFilter').value;var sf=(document.getElementById('buyerSearch').value||'').toLowerCase();var f=buyersData;if(tf!=='all')f=f.filter(function(b){return b.types.indexOf(tf)!==-1});if(sf)f=f.filter(function(b){return b.name.toLowerCase().indexOf(sf)!==-1||b.location.toLowerCase().indexOf(sf)!==-1});buyerMarkers.forEach(function(m){if(buyerMap)buyerMap.removeLayer(m)});buyerMarkers=[];var list=document.getElementById('buyersList');list.innerHTML='';if(!f.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light)"><i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;display:block"></i><p>Hakuna wananunua walioapatikana</p></div>';return}var tl={plastic:{sw:'Plastiki',en:'Plastic',fr:'Plastique'},paper:{sw:'Karatasi',en:'Paper',fr:'Papier'},glass:{sw:'Kioo',en:'Glass',fr:'Verre'},metal:{sw:'Chuma',en:'Metal',fr:'Métal'},organic:{sw:'Kikolojia',en:'Organic',fr:'Organique'},ewaste:{sw:'E-Waste',en:'E-Waste',fr:'Électronique'},textile:{sw:'Vazi/Nguo',en:'Textile',fr:'Textile'}};var cl=currentLang==='en'?'Contact':currentLang==='fr'?'Contacter':'Wasiliana';f.forEach(function(b){if(buyerMap){var mk=L.marker([b.lat,b.lng],{icon:L.divIcon({className:'',html:'<div style="background:#2E7D32;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.3);border:2px solid #fff"><i class="fas fa-store"></i></div>',iconSize:[32,32],iconAnchor:[16,16]})}).addTo(buyerMap).bindPopup('<b>'+b.name+'</b><br>'+b.location);buyerMarkers.push(mk);}var ts=b.types.map(function(t){return '<span>'+(tl[t]&&tl[t][currentLang]||tl[t]&&tl[t].sw||t)+'</span>'}).join('');list.innerHTML+='<div class="buyer-card"><div class="buyer-avatar"><i class="fas fa-store"></i></div><div class="buyer-info"><h4>'+b.name+'</h4><p>📍 '+b.location+' &bull; 📞 '+b.phone+'</p><div class="buyer-types">'+ts+'</div></div><button class="buyer-contact-btn" onclick="contactBuyer(\''+b.name+'\')"><i class="fas fa-phone"></i> '+cl+'</button></div>';});}
-function filterBuyers(){if(!buyerMap){initBuyerMap();setTimeout(renderBuyers,500);return}renderBuyers()}
-function contactBuyer(n){showToast('📞 Unawasiliana na '+n+'...','info')}
-function submitRegistration(){var n=document.getElementById('regName').value;var e=document.getElementById('regEmail').value;var p=document.getElementById('regPhone').value;if(!n||!e||!p){showToast('⚠️ Tafadhali jaza fomu kikamilifu','warning');return}document.getElementById('regFormCard').style.display='none';document.getElementById('regSuccess').classList.add('show');showToast('✅ Usajili umefanikiwa!','success');var s=document.getElementById('statBuyers');s.textContent=parseInt(s.textContent)+1;}
-var CR={sw:{welcome:'Jambo! 👋 Mimi ni TakaSmart Assistant. Niko hapa kukusaidia kuhusu usimamizi wa taka. 🌿',qs:['Jinsi ya kurecycle plastiki?','Aina za taka ni zipi?','Ninapataje mnunuzi?','Jinsi ya kutumia platform?'],r:{plastik:'🧴 <b>Kuhusu Plastiki:</b><br><br>1. <b>Tenganisha</b> plastiki kwa aina: PET, HDPE, PVC<br>2. <b>Safisha</b> kabla ya kurecycle<br>3. <b>Bana</b> chupa ili kupunguza ukubwa<br>4. <b>Pekeleke</b> kwenye kituo cha kukusanya plastiki<br>5. <b>Uze</b> kwa wananunua kwenye "Wananunua"<br><br>💡 PET ina thamani zaidi!',recycle:'♻️ <b>Jinsi ya Kurecycle:</b><br><br>1. <b>Tambua</b> aina ya taka<br>2. <b>Tenganisha</b> taka kwa aina zao<br>3. <b>Safisha</b> taka kabla ya kurecycle<br>4. <b>Pata mnunuzi</b> kwenye "Wananunua"<br>5. <b>Au peleke</b> kwenye kituo cha kukusanya taka<br><br>🌍 Kila mtu anaweza kuchangia!',aina:'📋 <b>Aina za Taka:</b><br><br>1. 🧴 <b>Plastiki</b> - Chupa, mifuko, vyungu<br>2. 📦 <b>Karatasi</b> - Sanduku, gazeti<br>3. 🍶 <b>Kioo</b> - Chupa, dirisha<br>4. 🔩 <b>Chuma</b> - Felesi, aluminium, shaba<br>5. 🍂 <b>Kikolojia</b> - Mabaki ya chakula<br>6. 💻 <b>E-Waste</b> - Simu, kompyuta, TV<br>7. 👕 <b>Vazi/Nguo</b> - Nguo za zamani',mnunuzi:'🏪 <b>Kupata Mnunuzi:</b><br><br>1. Nenda kwenye <b>"Wananunua"</b><br>2. <b>Chagua</b> aina ya taka unayotaka kuuza<br>3. <b>Tafuta</b> wananunua karibu na eneo lako<br>4. <b>Wasiliana</b> na mnunuzi moja kwa moja<br>5. <b>Kubaliana</b> kwenye bei na usafirishaji',platform:'📱 <b>Jinsi ya Kutumia Platform:</b><br><br>🔧 <b>Ripoti Uchafu</b> - Piga picha na tuma kwa mamlaka<br>🔍 <b>Tambua Taka</b> - Piga picha na jua aina ya taka<br>🏪 <b>Wananunua</b> - Tafuta na uwasiliane na wananunua<br>📝 <b>Jisajili</b> - Jiunge kama mnunuzi<br>💬 <b>Chat</b> - Niulize maswali yoyete!<br><br>🌍 TakaSmart inaunganisha raia, mamlaka, na wananunua!',uchafu:'🚯 <b>Kuhusu Uchafu:</b><br><br>1. <b>Ripoti</b> eneo lenye uchafu<br>2. <b>Tambua</b> aina ya uchafu<br>3. <b>Pata wananunua</b> wa taka hiyo<br>4. <b>Shiriki</b> na jirani zako',mazingira:'🌍 <b>Kuhusu Mazingira:</b><br><br>- Plastiki inachukua miaka 100+ kuoza<br>- Kioo kinaweza kurecyclewa bila kikomo<br>- Aluminium kinaweza kurecyclewa ndani ya wiki 2<br>- Taka za kikolojia zinaweza kuwa mbolea',komposti:'🍂 <b>Kuhusu Komposti:</b><br><br>1. Kusanya mabaki ya chakula na majani<br>2. Tia kwenye shimoni au chombo<br>3. Changanya na majani kavu na udongo<br>4. Geuza mara kwa mara<br>5. Baada ya miezi 2-3 utapata mbolea!',default:'🤔 Asante kwa swali lako! Jaribu kuuliza kuhusu: plastiki, recycle, aina za taka, mnunuzi, au jinsi ya kutumia platform.'}},en:{welcome:'Hello! 👋 I am TakaSmart Assistant. I can help you with waste management. 🌿',qs:['How to recycle plastic?','What are the waste types?','How to find a buyer?','How to use the platform?'],r:{plast:'🧴 <b>About Plastic:</b><br><br>1. <b>Separate</b> by type: PET, HDPE, PVC<br>2. <b>Clean</b> before recycling<br>3. <b>Crush</b> bottles to reduce size<br>4. <b>Take</b> to a collection center<br>5. <b>Sell</b> to buyers on the platform<br><br>💡 PET has the most recycling value!',recycle:'♻️ <b>How to Recycle:</b><br><br>1. <b>Identify</b> waste type<br>2. <b>Separate</b> waste by type<br>3. <b>Clean</b> waste before recycling<br>4. <b>Find buyers</b> in "Buyers" section<br>5. <b>Or take</b> to a collection center',type:'📋 <b>Waste Types:</b><br><br>1. 🧴 <b>Plastic</b> - Bottles, bags<br>2. 📦 <b>Paper</b> - Boxes, cardboard<br>3. 🍶 <b>Glass</b> - Bottles, windows<br>4. 🔩 <b>Metal</b> - Iron, aluminium, copper<br>5. 🍂 <b>Organic</b> - Food scraps, leaves<br>6. 💻 <b>E-Waste</b> - Phones, computers, TVs<br>7. 👕 <b>Textile</b> - Old clothes',buyer:'🏪 <b>Finding a Buyer:</b><br><br>1. Go to <b>"Buyers"</b> section<br>2. <b>Select</b> waste type<br>3. <b>Search</b> for buyers near you<br>4. <b>Contact</b> the buyer directly<br>5. <b>Agree</b> on price and pickup',platform:'📱 <b>How to Use the Platform:</b><br><br>🔧 <b>Report Waste</b> - Photo and send to authorities<br>🔍 <b>Identify Waste</b> - Photo and learn waste type<br>🏪 <b>Buyers</b> - Find and contact waste buyers<br>📝 <b>Register</b> - Join as a waste buyer<br>💬 <b>Chat</b> - Ask me any questions!',waste:'🚯 <b>About Waste:</b><br><br>1. <b>Report</b> waste areas<br>2. <b>Identify</b> waste type<br>3. <b>Find buyers</b> for that waste<br>4. <b>Share</b> with neighbors',compost:'🍂 <b>About Composting:</b><br><br>1. Collect food scraps and leaves<br>2. Put in a compost bin<br>3. Mix with dry leaves and soil<br>4. Turn regularly<br>5. After 2-3 months: natural fertilizer!',default:'🤔 Thanks for your question! Try asking about: plastic, recycling, waste types, buyers, or how to use the platform.'}},fr:{welcome:"Bonjour! 👋 Je suis l'assistant TakaSmart. 🌿",qs:['Comment recycler le plastique?','Types de déchets?','Comment trouver un acheteur?','Comment utiliser la plateforme?'],r:{plast:"🧴 <b>Plastique:</b><br><br>1. <b>Séparez</b> par type: PET, HDPE, PVC<br>2. <b>Nettoyez</b> avant recyclage<br>3. <b>Écrasez</b> les bouteilles<br>4. <b>Apportez</b> à un centre de collecte<br>5. <b>Vendez</b> aux acheteurs",recycl:"♻️ <b>Comment Recycler:</b><br><br>1. <b>Identifiez</b> le type de déchets<br>2. <b>Séparez</b> par type<br>3. <b>Nettoyez</b> avant recyclage<br>4. <b>Trouvez</b> des acheteurs<br>5. <b>Ou apportez</b> à un centre de collecte",type:"📋 <b>Types de Déchets:</b><br><br>1. 🧴 <b>Plastique</b><br>2. 📦 <b>Papier</b><br>3. 🍶 <b>Verre</b><br>4. 🔩 <b>Métal</b><br>5. 🍂 <b>Organique</b><br>6. 💻 <b>Électronique</b><br>7. 👕 <b>Textile</b>",acheteur:"🏪 <b>Trouver un Acheteur:</b><br><br>1. Allez à <b>\"Acheteurs\"</b><br>2. <b>Sélectionnez</b> le type de déchets<br>3. <b>Recherchez</b> des acheteurs proches<br>4. <b>Contactez</b> l'acheteur<br>5. <b>Convenez</b> du prix",plateforme:"📱 <b>Utiliser la Plateforme:</b><br><br>🔧 <b>Signaler</b> - Photo et envoyez<br>🔍 <b>Identifier</b> - Photo des déchets<br>🏪 <b>Acheteurs</b> - Trouvez des acheteurs<br>📝 <b>S'inscrire</b> - Devenez acheteur<br>💬 <b>Chat</b> - Posez des questions!",default:"🤔 Merci! Essayez de demander sur: plastique, recyclage, types de déchets, acheteurs."}}};
-function setChatLang(l,btn){chatLang=l;document.querySelectorAll('.chat-lang-bar button').forEach(function(b){b.classList.remove('active')});if(btn)btn.classList.add('active');document.getElementById('chatMessages').innerHTML='';addBotMsg(CR[chatLang].welcome);renderQQ();}
-function toggleChat(){var w=document.getElementById('chatWindow');w.classList.toggle('open');var b=document.getElementById('chatToggle');var bd=b.querySelector('.badge');if(bd)bd.remove();if(w.classList.contains('open')&&!document.getElementById('chatMessages').children.length){addBotMsg(CR[chatLang].welcome);renderQQ();}}
-function renderQQ(){var qs=CR[chatLang].qs||[];var c=document.getElementById('quickQuestions');c.innerHTML=qs.map(function(q){return '<button onclick="sendQQ(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</button>'}).join('');}
-function addBotMsg(txt){var m=document.getElementById('chatMessages');var d=document.createElement('div');d.className='msg msg-bot';d.innerHTML='<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div><div>'+txt+'</div>';m.appendChild(d);m.scrollTop=m.scrollHeight;}
-function addUserMsg(txt){var m=document.getElementById('chatMessages');var d=document.createElement('div');d.className='msg msg-user';d.textContent=txt;m.appendChild(d);m.scrollTop=m.scrollHeight;}
-function processChat(input){var txt=input.toLowerCase();var rs=CR[chatLang].r;var matched=false;for(var k in rs){if(k!=='default'&&txt.indexOf(k)!==-1){addBotMsg(rs[k]);matched=true;break;}}if(!matched)addBotMsg(rs.default||'🤔...');}
-function sendChat(){var inp=document.getElementById('chatInput');var txt=inp.value.trim();if(!txt)return;addUserMsg(txt);inp.value='';var m=document.getElementById('chatMessages');var tp=document.createElement('div');tp.className='msg msg-bot';tp.id='typing';tp.innerHTML='<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div><div style="opacity:.6"><i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite .2s"></i> <i class="fas fa-circle" style="font-size:.4rem;animation:blink 1s infinite .4s"></i></div>';m.appendChild(tp);m.scrollTop=m.scrollHeight;setTimeout(function(){tp.remove();processChat(txt)},800);}
-function sendQQ(q){document.getElementById('chatInput').value=q;sendChat();}
-function showToast(msg,type){var t=document.getElementById('toast');t.className='toast show toast-'+type;t.innerHTML=msg;setTimeout(function(){t.classList.remove('show')},4000);}
-document.addEventListener('DOMContentLoaded',function(){showSection('home')});
+﻿/**
+ * TakaSmart app.js — v20261001
+ * Maneno yote yanabadilishwa kwa window.t(key) kutoka i18n.js.
+ * Hakuna hardcoded text — lugha inafuata currentLang kila wakati.
+ */
 
-/* TakaSmart - Flask API integration */
-const API = {
-  reports: "/api/reports",
-  buyers: "/api/buyers",
-  identify: "/api/identify",
-  chat: "/api/chat"
-};
+/* ─── globals ─────────────────────────────────────────────────── */
+var reportMap = null, buyerMap = null, reportMarker = null, buyerMarkers = [];
 
-const cameraStreams = {};
-const capturedPhotos = {};
+/* i18n.js owns window.currentLang and window.chatLang.
+   We just read them; never redefine with Object.defineProperty. */
+var currentLang = window.currentLang || "sw";
+var chatLang    = window.chatLang    || "sw";
 
-async function apiJSON(url, options={}) {
-  const response = await fetch(url, {...options, cache:"no-store"});
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Server error");
+/* ─── helpers ─────────────────────────────────────────────────── */
+function escapeHtml(v) {
+  return String(v ?? "").replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c];
+  });
+}
+function escapeJs(v) {
+  return String(v ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+function showToast(msg, type) {
+  var el = document.getElementById("toast");
+  if (!el) return;
+  el.className = "toast show toast-" + (type || "info");
+  el.innerHTML = msg;
+  setTimeout(function () { el.classList.remove("show"); }, 4000);
+}
+
+/* ─── section navigation ─────────────────────────────────────── */
+function showSection(name) {
+  var home = document.getElementById("section-home");
+  if (home) home.style.display = name === "home" ? "" : "none";
+  document.querySelectorAll(".section").forEach(function (s) { s.classList.remove("active"); });
+  var sec = document.getElementById("section-" + name);
+  if (sec) sec.classList.add("active");
+  document.querySelectorAll(".nav-links button").forEach(function (b) { b.classList.remove("active"); });
+  var nb = document.getElementById("nav-" + name);
+  if (nb) nb.classList.add("active");
+  if (name === "report" && !reportMap) setTimeout(initReportMap, 200);
+  if (name === "buyers" && !buyerMap) setTimeout(initBuyerMap, 200);
+  if (name === "buyers" && document.getElementById("buyersList")) setTimeout(loadBuyers, 400);
+  if (document.body) window.scrollTo({ top: name === "home" ? 0 : 200, behavior: "smooth" });
+}
+
+/* ─── API ─────────────────────────────────────────────────────── */
+var API = { reports: "/api/reports", buyers: "/api/buyers", identify: "/api/identify", chat: "/api/chat" };
+
+/* Server error messages → i18n keys.
+   Keys must exist in every language in i18n.js catalog. */
+var SERVER_ERR_MAP = [
+  [/password.*si sahihi|password.*incorrect|invalid.*password|mot de passe.*incorrect/i, "err_wrong_password"],
+  [/si sahihi|incorrect credentials|identifiants incorrects/i,                          "err_wrong_credentials"],
+  [/inahitajika|required|requis/i,                                                       "err_login_required"],
+  [/si ya idara yako|not your report|pas votre signalement/i,                            "err_not_your_report"],
+  [/tayari imetumika|already exists|déjà utilisé/i,                                      "err_already_exists"],
+  [/database|db|connexion/i,                                                             "err_db"],
+];
+
+function translateServerError(msg) {
+  if (!msg) return window.t("server_error");
+  for (var i = 0; i < SERVER_ERR_MAP.length; i++) {
+    if (SERVER_ERR_MAP[i][0].test(msg)) return window.t(SERVER_ERR_MAP[i][1]);
+  }
+  return msg; /* keep original if no mapping found */
+}
+
+async function apiJSON(url, options) {
+  options = options || {};
+  var response = await fetch(url, Object.assign({ cache: "no-store" }, options));
+  var data = await response.json().catch(function () { return {}; });
+  if (!response.ok) throw new Error(translateServerError(data.error) || window.t("server_error"));
   return data;
 }
 
-function fileToFormData(input, extra={}) {
-  const fd = new FormData();
-  if (input && input.files && input.files[0]) fd.append("photo", input.files[0]);
-  Object.entries(extra).forEach(([k,v]) => fd.append(k, v));
-  return fd;
+/* ─── Stats / Recent Reports ─────────────────────────────────── */
+async function loadStats() {
+  try {
+    var s = await apiJSON("/api/stats");
+    document.getElementById("statReports").textContent = Number(s.reports).toLocaleString();
+    document.getElementById("statResolved").textContent = Number(s.resolved).toLocaleString();
+    document.getElementById("statBuyers").textContent = Number(s.buyers).toLocaleString();
+  } catch (_) {}
 }
 
-/* Submit a report to Flask/MySQL */
+async function loadRecentReports() {
+  try {
+    var data = await apiJSON(API.reports);
+    var d = document.getElementById("recentReports");
+    if (!d) return;
+    d.innerHTML = "";
+    (data.reports || []).slice(0, 10).forEach(function (r) {
+      var statusKey = r.status === "resolved" ? "status_resolved"
+                    : r.status === "in_progress" ? "status_progress"
+                    : "status_pending";
+      var statusClass = r.status === "resolved" ? "resolved"
+                      : r.status === "in_progress" ? "progress"
+                      : "pending";
+      var locText = escapeHtml(r.location || window.t("not_set"));
+      d.innerHTML +=
+        '<div class="report-item">' +
+          '<div class="report-img">' +
+            (r.photo ? '<img src="' + r.photo + '" alt="report">' : '<i class="fas fa-camera"></i>') +
+          '</div>' +
+          '<div class="report-details">' +
+            '<h4>' + escapeHtml(r.description) + '</h4>' +
+            '<p>📍 ' + locText + '</p>' +
+          '</div>' +
+          '<span class="report-status status-' + statusClass + '">' + window.t(statusKey) + '</span>' +
+        '</div>';
+    });
+    if (!d.innerHTML) d.innerHTML = '<p style="color:var(--text-light);padding:16px">' + window.t("no_reports") + '</p>';
+  } catch (_) {}
+}
+
+/* ─── Report submission ──────────────────────────────────────── */
+var capturedPhotos = {};
+var cameraStreams  = {};
+
 async function submitReport() {
-  const desc = document.getElementById("reportDesc").value.trim();
-  const auth = document.getElementById("reportAuthority").value;
-  const loc = document.getElementById("reportLocation").value.trim();
-  const lat = document.getElementById("reportLat").value;
-  const lng = document.getElementById("reportLng").value;
+  var desc = document.getElementById("reportDesc").value.trim();
+  var auth = document.getElementById("reportAuthority").value;
+  var loc  = document.getElementById("reportLocation").value.trim();
+  var lat  = document.getElementById("reportLat").value;
+  var lng  = document.getElementById("reportLng").value;
   if (!desc || !auth || !capturedPhotos.report) {
-    showToast("⚠️ Tafadhali jaza maelezo na chagua mamlaka", "warning");
+    showToast(window.t("report_required"), "warning");
     return;
   }
-
   try {
-    const fd = new FormData();
+    var fd = new FormData();
     fd.append("photo", capturedPhotos.report, "camera-report.jpg");
-    Object.entries({
-      description: desc,
-      authority: auth,
-      location: loc || "Haijawekwa",
-      lat,
-      lng
-    }).forEach(([key, value]) => fd.append(key, value));
-    const result = await apiJSON(API.reports, {method:"POST", body:fd});
-    showToast("✅ Ripoti imehifadhiwa kwenye mfumo!", "success");
+    [["description", desc], ["authority", auth], ["location", loc || window.t("not_set")], ["lat", lat], ["lng", lng]]
+      .forEach(function (kv) { fd.append(kv[0], kv[1]); });
+    await apiJSON(API.reports, { method: "POST", body: fd });
+    showToast(window.t("saved_report"), "success");
     document.getElementById("reportDesc").value = "";
     document.getElementById("reportAuthority").value = "";
     document.getElementById("reportLocation").value = "";
@@ -86,98 +146,218 @@ async function submitReport() {
     document.getElementById("reportUploadArea").style.display = "";
     loadStats();
     loadRecentReports();
-  } catch (err) {
-    showToast("❌ " + err.message, "warning");
-  }
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
 }
 
-/* Register buyer in MySQL */
+/* ─── Registration ───────────────────────────────────────────── */
 async function submitRegistration() {
-  const name = document.getElementById("regName").value.trim();
-  const email = document.getElementById("regEmail").value.trim();
-  const phone = document.getElementById("regPhone").value.trim();
-  const location = document.getElementById("regLocation").value.trim();
-  const lat = document.getElementById("regLat").value;
-  const lng = document.getElementById("regLng").value;
-  const description = document.getElementById("regDesc").value.trim();
-  const types = [...document.querySelectorAll('#regFormCard input[type="checkbox"]:checked')]
-    .map(x => x.value);
-
+  var name     = document.getElementById("regName").value.trim();
+  var email    = document.getElementById("regEmail").value.trim();
+  var phone    = document.getElementById("regPhone").value.trim();
+  var location = document.getElementById("regLocation").value.trim();
+  var lat      = document.getElementById("regLat").value;
+  var lng      = document.getElementById("regLng").value;
+  var description = document.getElementById("regDesc").value.trim();
+  var types    = Array.from(document.querySelectorAll('#regFormCard input[type="checkbox"]:checked'))
+                      .map(function (x) { return x.value; });
   if (!name || !email || !phone || !location || !types.length) {
-    showToast("⚠️ Jaza fomu na chagua angalau aina moja ya taka.", "warning");
+    showToast(window.t("form_required"), "warning");
     return;
   }
-
   try {
     await apiJSON(API.buyers, {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name,email,phone,location,description,types,lat,lng})
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name, email: email, phone: phone, location: location,
+                             description: description, types: types, lat: lat, lng: lng })
     });
     document.getElementById("regFormCard").style.display = "none";
     document.getElementById("regSuccess").classList.add("show");
-    showToast("✅ Usajili umefanikiwa!", "success");
+    showToast(window.t("registration_done"), "success");
     loadStats();
-  } catch (err) {
-    showToast("❌ " + err.message, "warning");
-  }
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
 }
 
-/* Real server-side waste classification endpoint.
-   The starter backend uses safe demo classification; replace the classifier
-   function later with a trained ML model if desired. */
+/* ─── Identify Waste ─────────────────────────────────────────── */
 async function identifyCapturedPhoto(blob) {
-  const preview = document.getElementById("identifyPreview");
+  var preview = document.getElementById("identifyPreview");
   preview.src = URL.createObjectURL(blob);
   preview.classList.add("show");
   document.getElementById("identifyUploadArea").style.display = "none";
-
   try {
-    const fd = new FormData();
+    var fd = new FormData();
     fd.append("photo", blob, "camera-identify.jpg");
-    const result = await apiJSON(API.identify, {method:"POST", body:fd});
+    var result = await apiJSON(API.identify, { method: "POST", body: fd });
     renderIdentifyResult(result);
-  } catch (err) {
-    showToast("❌ " + err.message, "warning");
-  }
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
 }
 
 function renderIdentifyResult(result) {
-  const w = result.waste;
-  const lang = currentLang || "sw";
-  const tn = lang === "en" ? w.typeEn : lang === "fr" ? w.typeFr : w.type;
-  const ds = w.desc[lang] || w.desc.sw;
-  const st = w.steps[lang] || w.steps.sw;
-  const rl = lang === "en" ? "Recycling Steps" : lang === "fr" ? "Étapes de Recyclage" : "Hatua za Kurecycle";
-  const fl = lang === "en" ? "Find Buyers for This Waste" : lang === "fr" ? "Trouver des Acheteurs" : "Tafuta Wananunua wa Taka Hii";
-  const stepsHTML = st.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join("");
+  window.lastIdentifyResult = result;
+  var lang = window.currentLang || "sw";
+
+  /* ── REJECTED ── */
+  if (!result.accepted) {
+    var msg = lang === "en" ? (result.reasonEn || "Image not identified.")
+            : lang === "fr" ? (result.reason   || "Image non identifiée.")
+            :                  (result.reason   || "Picha haikutambuliwa.");
+
+    var titleText  = lang === "en" ? "Image Not Identified"
+                   : lang === "fr" ? "Image non identifiée"
+                   : "Picha Haikutambuliwa";
+    var tipsLabel  = lang === "en" ? "Tips for a better photo:"
+                   : lang === "fr" ? "Conseils pour une meilleure photo :"
+                   : "Vidokezo vya picha bora:";
+    var tips = lang === "en"
+      ? ["Get closer to the waste item", "Waste should fill most of the frame", "Use good lighting, avoid shadows", "Photograph one waste type at a time"]
+      : lang === "fr"
+      ? ["Rapprochez-vous du déchet", "Le déchet doit occuper la majorité du cadre", "Bon éclairage, évitez les ombres", "Photographiez un seul type à la fois"]
+      : ["Karibia zaidi na taka", "Taka ijaze sehemu kubwa ya picha", "Tumia mwanga mzuri, epuka kivuli", "Piga picha ya aina moja kwa wakati mmoja"];
+    var tipsHTML   = tips.map(function (tip) { return '<li style="margin:4px 0">' + tip + '</li>'; }).join("");
+    var retryLabel = window.t("open_camera");
+
+    document.getElementById("aiResult").innerHTML =
+      '<div style="background:#fff3e0;border-left:4px solid #FF8F00;border-radius:8px;padding:16px;margin-top:8px">' +
+        '<h4 style="color:#E65100;margin:0 0 10px"><i class="fas fa-exclamation-triangle"></i> ' + titleText + '</h4>' +
+        '<p style="white-space:pre-line;margin-bottom:12px">' + escapeHtml(msg) + '</p>' +
+        '<strong>' + tipsLabel + '</strong>' +
+        '<ul style="margin:8px 0 0 16px">' + tipsHTML + '</ul>' +
+      '</div>' +
+      '<button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="takeAnotherIdentifyPhoto()">' +
+        '<i class="fas fa-camera-rotate"></i> ' + retryLabel +
+      '</button>';
+    document.getElementById("aiResult").classList.add("show");
+    document.getElementById("recycleGuide").style.display = "none";
+    document.getElementById("recycleGuidePlaceholder").style.display = "";
+    return;
+  }
+
+  /* ── ACCEPTED ── */
+  var w  = result.waste;
+  var tn = lang === "en" ? w.typeEn : lang === "fr" ? w.typeFr : w.type;
+  var ds = (w.desc           && (w.desc[lang]           || w.desc.sw))           || "";
+  var sf = (w.safety         && (w.safety[lang]         || w.safety.sw))         || "";
+  var rc = (w.recommendation && (w.recommendation[lang] || w.recommendation.sw)) || "";
+  var st = (w.steps          && (w.steps[lang]          || w.steps.sw))          || [];
+  var mv = (w.market_value   && (w.market_value[lang]   || w.market_value.sw))   || "";
+  var ei = (w.env_impact     && (w.env_impact[lang]     || w.env_impact.sw))     || "";
+
+  var conf     = Math.round((result.confidence || w.confidence || 0) * 100);
+  var confCol  = conf >= 65 ? "#2E7D32" : conf >= 40 ? "#F57F17" : "#C62828";
+  var confBar  = '<div style="background:#e0e0e0;border-radius:4px;height:8px;margin:4px 0 12px">' +
+                   '<div style="background:' + confCol + ';width:' + conf + '%;height:8px;border-radius:4px"></div>' +
+                 '</div>';
+
+  var reviewNote = result.needs_review
+    ? '<div style="background:#fff8e1;border-left:3px solid #FFC107;padding:8px 12px;border-radius:4px;margin:10px 0;font-size:.88rem">' +
+        '<i class="fas fa-exclamation-circle" style="color:#F57F17"></i> ' +
+        (lang === "en" ? "Lower confidence — verify the result visually before acting."
+         : lang === "fr" ? "Confiance plus faible — vérifiez visuellement avant d'agir."
+         : "Uhakika ni mdogo — thibitisha matokeo kwa macho kabla ya kutenda.") +
+      '</div>'
+    : "";
+
+  var demoNote = result.demo
+    ? '<div style="background:#e3f2fd;border-left:3px solid #1565C0;padding:8px 12px;border-radius:4px;margin:8px 0;font-size:.85rem">' +
+        '<i class="fas fa-info-circle" style="color:#1565C0"></i> ' +
+        (lang === "en" ? "Identified by visual analysis (no exact YOLO match). Take a closer photo for better accuracy."
+         : lang === "fr" ? "Identifié par analyse visuelle. Prenez une photo plus proche pour plus de précision."
+         : "Imetambuliwa kwa uchambuzi wa rangi/sura. Piga picha karibu zaidi kwa usahihi zaidi.") +
+      '</div>'
+    : "";
+
+  var stepsLabel  = lang === "en" ? "Recycling Steps"       : lang === "fr" ? "Etapes de recyclage" : "Hatua za Kurecycle";
+  var safetyLabel = lang === "en" ? "Safety"                : lang === "fr" ? "Securite"            : "Usalama";
+  var recLabel    = lang === "en" ? "Recommendation"        : lang === "fr" ? "Recommandation"      : "Ushauri";
+  var mvLabel     = lang === "en" ? "Market Value"          : lang === "fr" ? "Valeur marchande"    : "Thamani Sokoni";
+  var eiLabel     = lang === "en" ? "Environmental Impact"  : lang === "fr" ? "Impact environnemental": "Athari kwa Mazingira";
+  var findLabel   = lang === "en" ? "Find Buyers for This Waste": lang === "fr" ? "Trouver des acheteurs": "Tafuta Wananunua wa Taka Hii";
+  var anotherLbl  = lang === "en" ? "Take Another Photo"   : lang === "fr" ? "Prendre une autre photo": "Piga Picha Nyingine";
+  var confLabel   = lang === "en" ? "Confidence"           : lang === "fr" ? "Confiance"            : "Uhakika";
+
+  var stepsHTML = st.map(function (s, i) {
+    return '<div class="step"><div class="step-num">' + (i + 1) + '</div><div class="step-text">' + escapeHtml(s) + '</div></div>';
+  }).join("");
+
+  var infoRow = (mv || ei) ? (
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">' +
+      (mv ? '<div style="flex:1;min-width:140px;background:#fff8e1;border-radius:8px;padding:10px 12px">' +
+              '<div style="font-size:.78rem;color:#888;margin-bottom:2px"><i class="fas fa-coins" style="color:#F57F17"></i> ' + mvLabel + '</div>' +
+              '<div style="font-size:.88rem;font-weight:600">' + escapeHtml(mv) + '</div>' +
+            '</div>' : '') +
+      (ei ? '<div style="flex:1;min-width:140px;background:#e8f5e9;border-radius:8px;padding:10px 12px">' +
+              '<div style="font-size:.78rem;color:#888;margin-bottom:2px"><i class="fas fa-leaf" style="color:#2E7D32"></i> ' + eiLabel + '</div>' +
+              '<div style="font-size:.88rem;font-weight:600">' + escapeHtml(ei) + '</div>' +
+            '</div>' : '') +
+    '</div>'
+  ) : "";
 
   document.getElementById("aiResult").innerHTML =
-    `<h4><i class="fas fa-robot"></i> ${result.demo ? "Mfumo Umetambua:" : "AI Imetambua:"}</h4>
-     <p style="margin-bottom:12px">${ds}</p>
-     <div style="margin-bottom:12px"><span class="waste-type-badge ${w.badge}">${w.icon} ${tn}</span></div>
-     <div class="recycle-steps"><h4 style="color:var(--primary-dark);margin-bottom:10px"><i class="fas fa-recycle"></i> ${rl}:</h4>${stepsHTML}</div>
-     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-       <button class="btn btn-primary" style="flex:1" onclick="showSection('buyers')">
-         <i class="fas fa-store"></i> ${fl}
-       </button>
-       <button class="btn btn-secondary" style="flex:1" onclick="takeAnotherIdentifyPhoto()">
-         <i class="fas fa-camera-rotate"></i> ${currentLang === "en" ? "Take Another Photo" : currentLang === "fr" ? "Prendre une autre photo" : "Piga Picha Nyingine"}
-       </button>
-     </div>`;
+    '<div style="background:#f1f8e9;border-left:4px solid #2E7D32;border-radius:8px;padding:14px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+        '<span class="waste-type-badge ' + w.badge + '" style="font-size:1.1rem;padding:6px 18px">' + w.icon + ' ' + escapeHtml(tn) + '</span>' +
+        '<span style="font-size:.85rem;color:#555">' + confLabel + ': <strong style="color:' + confCol + '">' + conf + '%</strong></span>' +
+      '</div>' +
+      confBar +
+      '<p style="margin:0 0 6px;line-height:1.5">' + escapeHtml(ds) + '</p>' +
+      reviewNote + demoNote +
+    '</div>' +
+    infoRow +
+    '<div class="recycle-steps" style="margin-bottom:14px">' +
+      '<h4 style="color:var(--primary-dark);margin-bottom:10px"><i class="fas fa-recycle"></i> ' + stepsLabel + ':</h4>' +
+      stepsHTML +
+    '</div>' +
+    '<div style="background:#fce4ec;border-left:4px solid #C62828;border-radius:8px;padding:12px;margin-bottom:14px">' +
+      '<h4 style="color:#C62828;margin:0 0 6px"><i class="fas fa-shield-alt"></i> ' + safetyLabel + '</h4>' +
+      '<p style="margin:0;line-height:1.5">' + escapeHtml(sf) + '</p>' +
+    '</div>' +
+    '<div style="background:#e8f5e9;border-left:4px solid #43A047;border-radius:8px;padding:12px;margin-bottom:16px">' +
+      '<h4 style="color:#2E7D32;margin:0 0 6px"><i class="fas fa-lightbulb"></i> ' + recLabel + '</h4>' +
+      '<p style="margin:0;line-height:1.5">' + escapeHtml(rc) + '</p>' +
+    '</div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+      '<button class="btn btn-primary" style="flex:1" onclick="showSection(\'buyers\')">' +
+        '<i class="fas fa-store"></i> ' + escapeHtml(findLabel) +
+      '</button>' +
+      '<button class="btn btn-secondary" style="flex:1" onclick="takeAnotherIdentifyPhoto()">' +
+        '<i class="fas fa-camera-rotate"></i> ' + escapeHtml(anotherLbl) +
+      '</button>' +
+    '</div>';
   document.getElementById("aiResult").classList.add("show");
 
   document.getElementById("recycleGuide").innerHTML =
-    `<div style="margin-bottom:16px"><span class="waste-type-badge ${w.badge}" style="font-size:1rem;padding:8px 20px">${w.icon} ${tn}</span></div>${stepsHTML}`;
+    '<div style="margin-bottom:14px">' +
+      '<span class="waste-type-badge ' + w.badge + '" style="font-size:1rem;padding:8px 20px">' + w.icon + ' ' + escapeHtml(tn) + '</span>' +
+    '</div>' +
+    stepsHTML +
+    '<div style="background:#fce4ec;border-left:3px solid #C62828;border-radius:6px;padding:10px;margin-top:14px">' +
+      '<strong style="color:#C62828"><i class="fas fa-shield-alt"></i> ' + safetyLabel + ':</strong>' +
+      '<p style="margin:4px 0 0;font-size:.9rem">' + escapeHtml(sf) + '</p>' +
+    '</div>' +
+    '<div style="background:#e8f5e9;border-left:3px solid #43A047;border-radius:6px;padding:10px;margin-top:10px">' +
+      '<strong style="color:#2E7D32"><i class="fas fa-lightbulb"></i> ' + recLabel + ':</strong>' +
+      '<p style="margin:4px 0 0;font-size:.9rem">' + escapeHtml(rc) + '</p>' +
+    '</div>' +
+    (mv ? '<div style="background:#fff8e1;border-left:3px solid #F57F17;border-radius:6px;padding:10px;margin-top:10px">' +
+            '<strong style="color:#E65100"><i class="fas fa-coins"></i> ' + mvLabel + ':</strong>' +
+            '<p style="margin:4px 0 0;font-size:.9rem">' + escapeHtml(mv) + '</p>' +
+          '</div>' : '') +
+    (ei ? '<div style="background:#e8f5e9;border-left:3px solid #388E3C;border-radius:6px;padding:10px;margin-top:10px">' +
+            '<strong style="color:#1B5E20"><i class="fas fa-leaf"></i> ' + eiLabel + ':</strong>' +
+            '<p style="margin:4px 0 0;font-size:.9rem">' + escapeHtml(ei) + '</p>' +
+          '</div>' : '');
   document.getElementById("recycleGuide").style.display = "block";
   document.getElementById("recycleGuidePlaceholder").style.display = "none";
-  showToast("🔍 Aina ya taka imetambuliwa!", "info");
-}
 
+  var toastMsg = lang === "en" ? "Identified: " + tn
+               : lang === "fr" ? "Identifie : " + tn
+               : "Imetambuliwa: " + tn;
+  showToast(toastMsg, "success");
+}
 function takeAnotherIdentifyPhoto() {
   stopCamera("identify");
   capturedPhotos.identify = null;
-  const preview = document.getElementById("identifyPreview");
+  var preview = document.getElementById("identifyPreview");
   preview.removeAttribute("src");
   preview.classList.remove("show");
   document.getElementById("identifyUploadArea").style.display = "";
@@ -189,64 +369,65 @@ function takeAnotherIdentifyPhoto() {
   startCamera("identify");
 }
 
-/* Buyers */
+function closeAnalysisModal() {
+  var modal = document.getElementById("analysisModal");
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+/* ─── Buyers ────────────────────────────────────────────────── */
 async function loadBuyers() {
-  const tf = document.getElementById("buyerTypeFilter").value;
-  const sf = (document.getElementById("buyerSearch").value || "").trim();
-  const params = new URLSearchParams();
+  var tf = document.getElementById("buyerTypeFilter").value;
+  var sf = (document.getElementById("buyerSearch").value || "").trim();
+  var params = new URLSearchParams();
   if (tf && tf !== "all") params.set("type", tf);
   if (sf) params.set("search", sf);
-
   try {
-    const data = await apiJSON(API.buyers + "?" + params.toString());
+    var data = await apiJSON(API.buyers + "?" + params.toString());
     renderBuyersFromAPI(data.buyers || []);
-  } catch (err) {
-    showToast("❌ " + err.message, "warning");
-  }
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
 }
 
 function renderBuyersFromAPI(f) {
   if (!buyerMap) initBuyerMap();
-  buyerMarkers.forEach(m => buyerMap.removeLayer(m));
+  buyerMarkers.forEach(function (m) { buyerMap.removeLayer(m); });
   buyerMarkers = [];
-  const list = document.getElementById("buyersList");
+  var list = document.getElementById("buyersList");
+  if (!list) return;
   list.innerHTML = "";
 
   if (!f.length) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light)"><i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;display:block"></i><p>Hakuna wananunua walioapatikana</p></div>';
+    list.innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--text-light)">' +
+        '<i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;display:block"></i>' +
+        '<p>' + window.t("no_buyers") + '</p>' +
+      '</div>';
     return;
   }
 
-  const tl = {
-    plastic:{sw:"Plastiki",en:"Plastic",fr:"Plastique"},
-    paper:{sw:"Karatasi",en:"Paper",fr:"Papier"},
-    glass:{sw:"Kioo",en:"Glass",fr:"Verre"},
-    metal:{sw:"Chuma",en:"Metal",fr:"Métal"},
-    organic:{sw:"Kikolojia",en:"Organic",fr:"Organique"},
-    ewaste:{sw:"E-Waste",en:"E-Waste",fr:"Électronique"},
-    textile:{sw:"Vazi/Nguo",en:"Textile",fr:"Textile"}
-  };
-  const cl = currentLang === "en" ? "Contact" : currentLang === "fr" ? "Contacter" : "Wasiliana";
-
-  f.forEach(b => {
+  var cl = window.t("contact");
+  f.forEach(function (b) {
     if (b.lat != null && b.lng != null) {
-      const mk = L.marker([b.lat,b.lng]).addTo(buyerMap)
-        .bindPopup("<b>"+escapeHtml(b.name)+"</b><br>"+escapeHtml(b.location));
+      var mk = L.marker([b.lat, b.lng]).addTo(buyerMap)
+        .bindPopup("<b>" + escapeHtml(b.name) + "</b><br>" + escapeHtml(b.location));
       buyerMarkers.push(mk);
     }
-    const ts = (b.types || []).map(t => `<span>${(tl[t] && tl[t][currentLang]) || t}</span>`).join("");
-    list.innerHTML += `
-      <div class="buyer-card">
-        <div class="buyer-avatar"><i class="fas fa-store"></i></div>
-        <div class="buyer-info">
-          <h4>${escapeHtml(b.name)}</h4>
-          <p>📍 ${escapeHtml(b.location)} &bull; 📞 ${escapeHtml(b.phone)}</p>
-          <div class="buyer-types">${ts}</div>
-        </div>
-        <button class="buyer-contact-btn" onclick="contactBuyer('${escapeJs(b.phone)}')">
-          <i class="fas fa-phone"></i> ${cl}
-        </button>
-      </div>`;
+    var ts = (b.types || []).map(function (type) {
+      return '<span>' + window.t(type) + '</span>';
+    }).join("");
+    list.innerHTML +=
+      '<div class="buyer-card">' +
+        '<div class="buyer-avatar"><i class="fas fa-store"></i></div>' +
+        '<div class="buyer-info">' +
+          '<h4>' + escapeHtml(b.name) + '</h4>' +
+          '<p>📍 ' + escapeHtml(b.location) + ' &bull; 📞 ' + escapeHtml(b.phone) + '</p>' +
+          '<div class="buyer-types">' + ts + '</div>' +
+        '</div>' +
+        '<button class="buyer-contact-btn" onclick="contactBuyer(\'' + escapeJs(b.phone) + '\')">' +
+          '<i class="fas fa-phone"></i> ' + cl +
+        '</button>' +
+      '</div>';
   });
 }
 
@@ -256,140 +437,610 @@ function contactBuyer(phone) {
   window.location.href = "tel:" + phone;
 }
 
-function escapeHtml(v) {
-  return String(v ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-}
-function escapeJs(v) {
-  return String(v ?? "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-}
-
-/* Dashboard stats/reports */
-async function loadStats() {
-  try {
-    const s = await apiJSON("/api/stats");
-    document.getElementById("statReports").textContent = Number(s.reports).toLocaleString();
-    document.getElementById("statResolved").textContent = Number(s.resolved).toLocaleString();
-    document.getElementById("statBuyers").textContent = Number(s.buyers).toLocaleString();
-  } catch (_) {}
-}
-
-async function loadRecentReports() {
-  try {
-    const data = await apiJSON(API.reports);
-    const d = document.getElementById("recentReports");
-    d.innerHTML = "";
-    (data.reports || []).slice(0,10).forEach(r => {
-      d.innerHTML += `
-      <div class="report-item">
-        <div class="report-img">${r.photo ? `<img src="${r.photo}" alt="report">` : '<i class="fas fa-camera"></i>'}</div>
-        <div class="report-details">
-          <h4>${escapeHtml(r.description)}</h4>
-          <p>📍 ${escapeHtml(r.location || "Haijawekwa")}</p>
-        </div>
-        <span class="report-status status-${r.status === "resolved" ? "resolved" : r.status === "in_progress" ? "progress" : "pending"}">
-          ${r.status === "resolved" ? "Imetatuliwa" : r.status === "in_progress" ? "Inashughulikiwa" : "Inasubiri"}
-        </span>
-      </div>`;
-    });
-  } catch (_) {}
-}
-
-/* Chatbot */
-async function sendChat() {
-  const input = document.getElementById("chatInput");
-  const message = input.value.trim();
-  if (!message) return;
-  appendChatMessage(message, "user");
-  input.value = "";
-  const request = {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message, lang: chatLang})
+/* ─── Authority portal ───────────────────────────────────────── */
+async function submitAuthority() {
+  var data = {
+    name:           document.getElementById("authorityName").value.trim(),
+    authority_type: document.getElementById("authorityType").value,
+    email:          document.getElementById("authorityEmail").value.trim(),
+    phone:          document.getElementById("authorityPhone").value.trim(),
+    location:       document.getElementById("authorityLocation").value.trim(),
+    description:    document.getElementById("authorityDescription").value.trim(),
+    password:       document.getElementById("authorityPassword").value
   };
-  try {
-    const result = await apiJSON(API.chat, request);
-    appendChatMessage(result.reply || "Samahani, sijapata jibu kwa swali hilo.", "bot");
-  } catch (firstError) {
-    try {
-      const result = await apiJSON(API.chat + "?retry=1", request);
-      appendChatMessage(result.reply || "Samahani, sijapata jibu kwa swali hilo.", "bot");
-    } catch (secondError) {
-      console.error("Chatbot request failed", secondError);
-      appendChatMessage("Samahani, server haipatikani kwa sasa. Hakikisha umefungua mfumo kupitia http://127.0.0.1:5000/ kisha refresh ukurasa.", "bot");
-    }
-  }
-}
-
-function appendChatMessage(message, who) {
-  const box = document.getElementById("chatMessages");
-  const div = document.createElement("div");
-  div.className = "msg " + (who === "user" ? "msg-user" : "msg-bot");
-  if (who === "bot") div.innerHTML = `<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div>${message}`;
-  else div.textContent = message;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-
-/* Preserve the original UI helpers */
-document.addEventListener("DOMContentLoaded", () => {
-  loadStats();
-  loadRecentReports();
-  if (typeof setChatLang === "function") setChatLang("sw", document.querySelector(".chat-lang-bar button"));
-  if (typeof showSection === "function") showSection("home");
-});
-
-async function startCamera(kind) {
-  const panel = document.getElementById(kind + "CameraPanel");
-  const video = document.getElementById(kind + "Camera");
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showToast("❌ Browser hii haiwezi kufungua camera. Tumia HTTPS au localhost.", "warning");
+  if (!data.name || !data.email || !data.phone || !data.location) {
+    showToast(window.t("authority_required"), "warning");
     return;
   }
   try {
-    cameraStreams[kind] = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}}, audio:false});
+    await apiJSON("/api/authorities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    showToast(window.t("authority_saved"), "success");
+    document.getElementById("authorityLoginUsername").value = data.email;
+    showAuthorityAuth("signin");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+function showAuthorityAuth(mode) {
+  var signIn    = mode === "signin";
+  var signInForm = document.getElementById("authoritySignInForm");
+  var signUpForm = document.getElementById("authoritySignUpForm");
+  if (!signInForm || !signUpForm) return;
+  signInForm.classList.toggle("active", signIn);
+  signUpForm.classList.toggle("active", !signIn);
+  document.getElementById("authoritySignInTab").classList.toggle("active", signIn);
+  document.getElementById("authoritySignUpTab").classList.toggle("active", !signIn);
+}
+
+async function authorityLogin() {
+  try {
+    var result = await apiJSON("/api/authority/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("authorityLoginUsername").value.trim(),
+        password: document.getElementById("authorityLoginPassword").value
+      })
+    });
+    var data = await apiJSON("/api/authority/dashboard");
+
+    ["authoritySignInForm", "authoritySignUpForm"].forEach(function (id) {
+      var el = document.getElementById(id); if (el) el.style.display = "none";
+    });
+    var tabs = document.querySelector(".portal-tabs");
+    if (tabs) tabs.style.display = "none";
+    document.getElementById("authorityPanel").style.display = "block";
+
+    window.lastAuthorityData    = data;
+    window.lastAuthorityReports = data.reports || [];
+    refreshAuthorityDashboardLang(data);
+    showToast(window.t("authority_logged_in"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+/**
+ * Rebuilds all dynamic content inside the authority dashboard in the
+ * currently selected language.  Called from authorityLogin AND from
+ * applyLocale() every time the user switches language.
+ */
+function refreshAuthorityDashboardLang(data) {
+  data = data || window.lastAuthorityData || {};
+
+  /* Dashboard heading — authority name (server-provided, no translation needed) */
+  var nameEl = document.getElementById("authorityDisplayName");
+  var typeEl = document.getElementById("authorityDisplayType");
+  if (nameEl && data.authority_name) nameEl.textContent = data.authority_name;
+  if (typeEl && data.authority_type) typeEl.textContent = data.authority_type;
+
+  /* Pending count */
+  var pc = document.getElementById("authorityPendingCount");
+  if (pc) pc.textContent = data.pending_count || 0;
+
+  /* Tasks list — server now returns i18n keys, translate them */
+  var tasksEl = document.getElementById("authorityTasks");
+  if (tasksEl) {
+    tasksEl.innerHTML = (data.tasks || []).map(function (key) {
+      /* t(key) looks up the key; if not found it returns the key itself as fallback */
+      return '<p style="padding:8px 0;border-bottom:1px solid #eee;line-height:1.5">' +
+               escapeHtml(window.t(key)) +
+             '</p>';
+    }).join("") || '<p style="color:var(--text-light)">—</p>';
+  }
+
+  /* Reports table */
+  renderAuthorityReports(window.lastAuthorityReports || data.reports || []);
+}
+
+async function refreshAuthorityReports() {
+  try {
+    var data = await apiJSON("/api/authority/dashboard");
+    window.lastAuthorityData    = data;
+    window.lastAuthorityReports = data.reports || [];
+    refreshAuthorityDashboardLang(data);
+  } catch (_) {}
+}
+
+function renderAuthorityReports(reports) {
+  var target = document.getElementById("authorityReports");
+  if (!target) return;
+  window.lastAuthorityReports = reports;
+
+  if (!reports || !reports.length) {
+    target.innerHTML = '<p style="color:var(--text-light);padding:16px">' + window.t("authority_no_reports") + '</p>';
+    return;
+  }
+
+  target.innerHTML = reports.map(function (report) {
+    var coordinates = (report.lat != null && report.lng != null)
+      ? '<a href="https://www.google.com/maps?q=' + report.lat + ',' + report.lng + '" target="_blank" rel="noopener">' +
+          escapeHtml(report.location || (report.lat + ", " + report.lng)) + '</a>'
+      : escapeHtml(report.location || window.t("not_set"));
+
+    var photo = report.photo
+      ? '<img src="' + escapeHtml(report.photo) + '" alt="' + window.t("report_photo_title") + '" style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-top:10px">'
+      : '<p><small>' + window.t("photo_missing") + '</small></p>';
+
+    var meaning = escapeHtml(report.photo_meaning || window.t("photo_missing"));
+
+    var statusKey = report.status === "resolved" ? "status_resolved"
+                  : report.status === "in_progress" ? "status_progress"
+                  : "status_pending";
+
+    return '<div class="authority-report" style="padding:14px 0;border-bottom:1px solid #eee">' +
+      '<strong>' + window.t("report_content") + ':</strong> ' + escapeHtml(report.description) + '<br>' +
+      '<strong>' + window.t("report_location_lbl") + ':</strong> ' + coordinates + '<br>' +
+      '<strong>' + window.t("report_status_lbl") + ':</strong> ' + window.t(statusKey) +
+      photo +
+      '<p style="margin-top:10px"><strong>' + window.t("photo_meaning") + ':</strong> ' + meaning + '</p>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button class="btn btn-secondary" style="padding:6px 10px" onclick="updateAuthorityReport(' + report.id + ',\'in_progress\')">' +
+          '<i class="fas fa-play"></i> ' + window.t("btn_handle") +
+        '</button>' +
+        '<button class="btn btn-primary" style="padding:6px 10px" onclick="updateAuthorityReport(' + report.id + ',\'resolved\')">' +
+          '<i class="fas fa-check"></i> ' + window.t("btn_resolved") +
+        '</button>' +
+        '<button class="btn btn-secondary" style="padding:6px 10px" onclick="deleteAuthorityReport(' + report.id + ')">' +
+          '<i class="fas fa-trash"></i> ' + window.t("btn_delete") +
+        '</button>' +
+      '</div></div>';
+  }).join("");
+}
+
+async function updateAuthorityReport(reportId, status) {
+  try {
+    await apiJSON("/api/authority/reports/" + reportId, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: status })
+    });
+    await refreshAuthorityReports();
+    showToast(window.t("report_updated"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+async function deleteAuthorityReport(reportId) {
+  if (!window.confirm(window.t("confirm_delete_report"))) return;
+  try {
+    await apiJSON("/api/authority/reports/" + reportId, { method: "DELETE" });
+    await refreshAuthorityReports();
+    showToast(window.t("report_deleted"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+/* ─── Admin portal ───────────────────────────────────────────── */
+async function adminLogin() {
+  try {
+    await apiJSON("/api/admin/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("adminUsername").value.trim(),
+        password: document.getElementById("adminPassword").value
+      })
+    });
+    var data = await apiJSON("/api/admin/dashboard");
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+
+    window.lastAdminData  = data;
+    window.lastAdminUsers = data.users || [];
+    refreshAdminDashboardLang(data);
+    showToast(window.t("admin_logged_in"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+/* Rebuild all dynamic admin content in the current language.
+   Called from adminLogin AND from applyLocale on every language switch. */
+function refreshAdminDashboardLang(data) {
+  data = data || window.lastAdminData || {};
+  var stats = data.stats || {};
+
+  /* ── Stats bar ── */
+  var statsEl = document.getElementById("adminStats");
+  if (statsEl) {
+    statsEl.innerHTML = [
+      [window.t("stat_label_reports"),  stats.reports    || 0, "fas fa-file-alt",     "#1565C0"],
+      [window.t("stat_label_resolved"), stats.resolved   || 0, "fas fa-check-circle", "#2E7D32"],
+      [window.t("stat_label_buyers"),   stats.buyers     || 0, "fas fa-store",        "#E65100"],
+      [window.t("stat_label_auths"),    (data.authorities || []).length, "fas fa-landmark", "#6A1B9A"]
+    ].map(function (item) {
+      return '<div class="stat-card">' +
+        '<i class="' + item[2] + '" style="font-size:1.6rem;color:' + item[3] + ';margin-bottom:4px"></i>' +
+        '<div class="stat-number" style="color:' + item[3] + '">' + item[1] + '</div>' +
+        '<div class="stat-label">' + item[0] + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  /* ── Task cards title ── */
+  var titleEl = document.getElementById("adminTasksTitle");
+  if (titleEl) titleEl.textContent = window.t("admin_tasks_title");
+
+  /* ── Task cards ── */
+  var cardsEl = document.getElementById("adminTaskCards");
+  if (cardsEl) {
+    var TASKS = [
+      { key: "task_manage_users",   icon: "👥", color: "blue",   desc_key: "task_manage_users_desc"   },
+      { key: "task_manage_reports", icon: "📋", color: "green",  desc_key: "task_manage_reports_desc" },
+      { key: "task_manage_buyers",  icon: "🏪", color: "orange", desc_key: "task_manage_buyers_desc"  },
+      { key: "task_manage_auths",   icon: "🏛️", color: "teal",   desc_key: "task_manage_auths_desc"   },
+      { key: "task_view_stats",     icon: "📊", color: "purple", desc_key: "task_view_stats_desc"     },
+      { key: "task_security",       icon: "🔒", color: "red",    desc_key: "task_security_desc"       },
+    ];
+    cardsEl.innerHTML = TASKS.map(function (task) {
+      return '<div class="admin-task-card ' + task.color + '">' +
+        '<div class="task-icon">' + task.icon + '</div>' +
+        '<h4>' + window.t(task.key) + '</h4>' +
+        '<p>' + window.t(task.desc_key) + '</p>' +
+      '</div>';
+    }).join("");
+  }
+
+  /* ── User table ── */
+  renderAdminUsers(data.users || window.lastAdminUsers || []);
+
+  /* ── Edit modal labels (update if open) ── */
+  var editModal = document.getElementById("editUserModal");
+  if (editModal && editModal.classList.contains("open")) {
+    var lang = window.currentLang || "sw";
+    var titleMEl = document.getElementById("editModalTitle");
+    var saveMEl  = document.getElementById("editSaveLabel");
+    var cancelMEl= document.getElementById("editCancelLabel");
+    var pwdLEl   = document.getElementById("editPwdLabel");
+    if (titleMEl)  titleMEl.textContent  = lang === "en" ? "Edit User" : lang === "fr" ? "Modifier l'utilisateur" : "Hariri Mtumiaji";
+    if (saveMEl)   saveMEl.textContent   = lang === "en" ? "Save"   : lang === "fr" ? "Enregistrer" : "Hifadhi";
+    if (cancelMEl) cancelMEl.textContent = lang === "en" ? "Cancel" : lang === "fr" ? "Annuler"     : "Ghairi";
+    if (pwdLEl)    pwdLEl.textContent    = lang === "en" ? "New Password (leave blank to keep current)"
+                                         : lang === "fr" ? "Nouveau mot de passe (laisser vide)"
+                                         : "Nenosiri Jipya (acha wazi kubaki sawa)";
+  }
+}
+
+async function adminLogout() {
+  await apiJSON("/api/admin/logout", { method: "POST" });
+  window.lastAdminData  = null;
+  window.lastAdminUsers = null;
+  document.getElementById("loginSection").style.display = "block";
+  document.getElementById("adminPanel").style.display = "none";
+  switchLoginTab("admin");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB SWITCHER — Admin Login / User Login
+═══════════════════════════════════════════════════════════ */
+function switchLoginTab(tab) {
+  var isAdmin = tab === "admin";
+  document.getElementById("tabAdmin").classList.toggle("active", isAdmin);
+  document.getElementById("tabUser").classList.toggle("active", !isAdmin);
+  document.getElementById("adminLoginForm").classList.toggle("active", isAdmin);
+  document.getElementById("userLoginForm").classList.toggle("active", !isAdmin);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USER LOGIN  (users created via admin panel)
+═══════════════════════════════════════════════════════════ */
+async function userLogin() {
+  var identifier = document.getElementById("userLoginUsername").value.trim();
+  var password   = document.getElementById("userLoginPassword").value;
+
+  if (!identifier || !password) {
+    showToast(window.t("form_required"), "warning");
+    return;
+  }
+
+  try {
+    var result = await apiJSON("/api/user/login", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ username: identifier, password: password })
+    });
+
+    /* If the user has the admin role, give them the full admin dashboard */
+    if (result.role === "admin") {
+      var data = await apiJSON("/api/user/dashboard");
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      window.lastAdminData  = data;
+      window.lastAdminUsers = data.users || [];
+      refreshAdminDashboardLang(data);
+      showToast(window.t("admin_logged_in"), "success");
+      return;
+    }
+
+    /* All other roles → user panel */
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("userPanel").style.display = "block";
+    window.lastUserData = result;
+    renderUserDashboard(result);
+    showToast(window.t("user_logged_in"), "success");
+
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+async function userLogout() {
+  try { await apiJSON("/api/user/logout", { method: "POST" }); } catch (_) {}
+  window.lastUserData = null;
+  document.getElementById("loginSection").style.display = "block";
+  document.getElementById("userPanel").style.display = "none";
+  document.getElementById("userLoginUsername").value = "";
+  document.getElementById("userLoginPassword").value = "";
+  switchLoginTab("user");
+  showToast(window.t("user_logged_out"), "info");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USER DASHBOARD  — shown for non-admin roles
+═══════════════════════════════════════════════════════════ */
+var ROLE_LABELS = {
+  admin:     { sw: "Msimamizi",     en: "Administrator",   fr: "Administrateur" },
+  reporter:  { sw: "Mripoti",       en: "Reporter",        fr: "Rapporteur" },
+  buyer:     { sw: "Mnunuzi",       en: "Buyer",           fr: "Acheteur" },
+  authority: { sw: "Mamlaka",       en: "Authority",       fr: "Autorité" },
+  support:   { sw: "Msaidizi",      en: "Support",         fr: "Support" },
+};
+
+function renderUserDashboard(user) {
+  user = user || window.lastUserData || {};
+  var lang   = window.currentLang || "sw";
+  var role   = user.role || "reporter";
+  var rlObj  = ROLE_LABELS[role] || ROLE_LABELS.reporter;
+  var rlText = rlObj[lang] || rlObj.sw;
+
+  /* Welcome card */
+  var nameEl = document.getElementById("userWelcomeName");
+  var roleEl = document.getElementById("userWelcomeRole");
+  if (nameEl) nameEl.textContent = window.t("user_dashboard_welcome") + ", " + escapeHtml(user.username || "—") + "!";
+  if (roleEl) roleEl.textContent = window.t("user_role_label") + ": " + rlText;
+
+  /* Stats */
+  var stats   = user.stats || {};
+  var gridEl  = document.getElementById("userInfoGrid");
+  if (gridEl) {
+    var items = [
+      { icon: "📋", val: stats.reports  || 0, lbl: window.t("stat_label_reports")  },
+      { icon: "✅", val: stats.resolved || 0, lbl: window.t("stat_label_resolved") },
+      { icon: "🏪", val: stats.buyers   || 0, lbl: window.t("stat_label_buyers")   },
+    ];
+    gridEl.innerHTML = items.map(function (item) {
+      return '<div class="user-info-card">' +
+        '<div class="ui-icon">' + item.icon + '</div>' +
+        '<div class="ui-val">' + item.val + '</div>' +
+        '<div class="ui-lbl">' + escapeHtml(item.lbl) + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  /* Role-specific content */
+  var contentEl = document.getElementById("userRoleContent");
+  if (!contentEl) return;
+
+  var reports = user.reports || [];
+
+  /* Reporter / Support / Authority / Buyer — show recent reports */
+  var recentTitle = window.t("user_panel_reports");
+  var reportRows  = reports.slice(0, 10).map(function (r) {
+    var statusKey   = r.status === "resolved" ? "status_resolved"
+                    : r.status === "in_progress" ? "status_progress" : "status_pending";
+    var statusClass = r.status === "resolved" ? "resolved"
+                    : r.status === "in_progress" ? "progress" : "pending";
+    return '<div class="report-item">' +
+      '<div class="report-img">' +
+        (r.photo ? '<img src="' + r.photo + '" alt="report">' : '<i class="fas fa-camera"></i>') +
+      '</div>' +
+      '<div class="report-details">' +
+        '<h4>' + escapeHtml(r.description) + '</h4>' +
+        '<p>📍 ' + escapeHtml(r.location || window.t("not_set")) + '</p>' +
+      '</div>' +
+      '<span class="report-status status-' + statusClass + '">' + window.t(statusKey) + '</span>' +
+    '</div>';
+  }).join("") || '<p style="color:var(--text-light);padding:12px 0">' + window.t("no_reports") + '</p>';
+
+  contentEl.innerHTML =
+    '<div class="card">' +
+      '<div class="card-header" style="background:linear-gradient(135deg,#2E7D32,#1B5E20)">' +
+        '<i class="fas fa-list-check"></i>' +
+        '<h3>' + escapeHtml(recentTitle) + '</h3>' +
+      '</div>' +
+      '<div class="card-body">' + reportRows + '</div>' +
+    '</div>';
+}
+
+/* Re-render user panel on language change */
+function refreshUserDashboardLang() {
+  if (window.lastUserData) renderUserDashboard(window.lastUserData);
+}
+
+function renderAdminUsers(users) {
+  window.lastAdminUsers = users;
+  var box = document.getElementById("adminUsers");
+  if (!box) return;
+
+  if (!users || !users.length) {
+    box.innerHTML = '<p style="color:var(--text-light);padding:12px 0">' + window.t("admin_no_users") + '</p>';
+    return;
+  }
+
+  /* Role → badge class mapping */
+  var roleClass = { admin:"role-admin", reporter:"role-reporter", buyer:"role-buyer", authority:"role-authority", support:"role-support" };
+
+  var rows = users.map(function (user) {
+    var badge = '<span class="role-badge ' + (roleClass[user.role] || "role-support") + '">' + escapeHtml(user.role) + '</span>';
+    return '<tr>' +
+      '<td><strong>' + escapeHtml(user.username) + '</strong></td>' +
+      '<td>' + escapeHtml(user.email) + '</td>' +
+      '<td>' + badge + '</td>' +
+      '<td>' +
+        '<button class="btn btn-secondary" style="padding:4px 10px;margin-right:6px" title="' + window.t("user_management") + '" ' +
+          'onclick="openEditModal(' + user.id + ',\'' + escapeJs(user.username) + '\',\'' + escapeJs(user.email) + '\',\'' + escapeJs(user.role) + '\')">' +
+          '<i class="fas fa-pen"></i>' +
+        '</button>' +
+        '<button class="btn btn-secondary" style="padding:4px 10px" title="' + window.t("btn_delete") + '" onclick="deleteAdminUser(' + user.id + ')">' +
+          '<i class="fas fa-trash"></i>' +
+        '</button>' +
+      '</td>' +
+    '</tr>';
+  }).join("");
+
+  box.innerHTML =
+    '<table class="user-table">' +
+      '<thead><tr>' +
+        '<th>' + window.t("label_username") + '</th>' +
+        '<th>' + window.t("email") + '</th>' +
+        '<th>' + window.t("label_role") + '</th>' +
+        '<th style="width:100px">' + window.t("user_management") + '</th>' +
+      '</tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table>';
+}
+
+/* ── Edit modal helpers ── */
+function openEditModal(userId, username, email, role) {
+  document.getElementById("editUserId").value     = userId;
+  document.getElementById("editUsername").value   = username;
+  document.getElementById("editEmail").value      = email;
+  document.getElementById("editRole").value       = role;
+  document.getElementById("editPassword").value   = "";
+
+  var lang = window.currentLang || "sw";
+  document.getElementById("editModalTitle").textContent =
+    lang === "en" ? "Edit User" : lang === "fr" ? "Modifier l'utilisateur" : "Hariri Mtumiaji";
+  document.getElementById("editSaveLabel").textContent =
+    lang === "en" ? "Save" : lang === "fr" ? "Enregistrer" : "Hifadhi";
+  document.getElementById("editCancelLabel").textContent =
+    lang === "en" ? "Cancel" : lang === "fr" ? "Annuler" : "Ghairi";
+  document.getElementById("editPwdLabel").textContent =
+    lang === "en" ? "New Password (leave blank to keep current)"
+    : lang === "fr" ? "Nouveau mot de passe (laisser vide pour conserver)"
+    : "Nenosiri Jipya (acha wazi kubaki sawa)";
+
+  document.getElementById("editUserModal").classList.add("open");
+}
+
+function closeEditModal() {
+  document.getElementById("editUserModal").classList.remove("open");
+}
+
+async function saveEditUser() {
+  var userId   = document.getElementById("editUserId").value;
+  var username = document.getElementById("editUsername").value.trim();
+  var email    = document.getElementById("editEmail").value.trim();
+  var role     = document.getElementById("editRole").value;
+  var password = document.getElementById("editPassword").value;
+
+  if (!username || !email) {
+    showToast(window.t("form_required"), "warning");
+    return;
+  }
+  try {
+    await apiJSON("/api/admin/users/" + userId, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username, email: email, role: role,
+                             permissions: [], password: password })
+    });
+    closeEditModal();
+    var data = await apiJSON("/api/admin/dashboard");
+    window.lastAdminData  = data;
+    window.lastAdminUsers = data.users || [];
+    renderAdminUsers(window.lastAdminUsers);
+    showToast(window.t("user_updated"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+async function createAdminUser() {
+  var username = document.getElementById("userUsername").value.trim();
+  var email    = document.getElementById("userEmail").value.trim();
+  var password = document.getElementById("userPassword").value;
+  var role     = document.getElementById("userRole").value;
+
+  if (!username || !email || !password) {
+    showToast(window.t("form_required"), "warning");
+    return;
+  }
+  try {
+    await apiJSON("/api/admin/users", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username, email: email,
+                             password: password, role: role, permissions: [] })
+    });
+    /* Clear form */
+    document.getElementById("userUsername").value = "";
+    document.getElementById("userEmail").value    = "";
+    document.getElementById("userPassword").value = "";
+    document.getElementById("userRole").value     = "admin";
+    showToast(window.t("user_created"), "success");
+    var data = await apiJSON("/api/admin/dashboard");
+    window.lastAdminData  = data;
+    window.lastAdminUsers = data.users || [];
+    renderAdminUsers(window.lastAdminUsers);
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+async function deleteAdminUser(userId) {
+  if (!window.confirm(window.t("confirm_delete_user"))) return;
+  try {
+    await apiJSON("/api/admin/users/" + userId, { method: "DELETE" });
+    var data = await apiJSON("/api/admin/dashboard");
+    window.lastAdminData  = data;
+    window.lastAdminUsers = data.users || [];
+    renderAdminUsers(window.lastAdminUsers);
+    showToast(window.t("user_deleted"), "success");
+  } catch (err) { showToast("❌ " + err.message, "warning"); }
+}
+
+/* editAdminUser — replaced by openEditModal / saveEditUser (modal in admin.html) */
+
+/* ─── Camera ─────────────────────────────────────────────────── */
+async function startCamera(kind) {
+  var panel = document.getElementById(kind + "CameraPanel");
+  var video = document.getElementById(kind + "Camera");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast(window.t("camera_unavailable"), "warning");
+    return;
+  }
+  try {
+    cameraStreams[kind] = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
     video.srcObject = cameraStreams[kind];
     panel.classList.add("open");
-  } catch (error) {
-    showToast("❌ Ruhusu camera kwenye browser ili kupiga picha.", "warning");
+  } catch (err) {
+    showToast(window.t("camera_allow"), "warning");
   }
 }
 
 function stopCamera(kind) {
   if (cameraStreams[kind]) {
-    cameraStreams[kind].getTracks().forEach(track => track.stop());
+    cameraStreams[kind].getTracks().forEach(function (track) { track.stop(); });
     cameraStreams[kind] = null;
   }
-  const panel = document.getElementById(kind + "CameraPanel");
+  var panel = document.getElementById(kind + "CameraPanel");
   if (panel) panel.classList.remove("open");
 }
 
 function captureCameraPhoto(kind) {
-  const video = document.getElementById(kind + "Camera");
-  const canvas = document.getElementById(kind + "Canvas");
+  var video  = document.getElementById(kind + "Camera");
+  var canvas = document.getElementById(kind + "Canvas");
   if (!video.videoWidth || !video.videoHeight) {
-    showToast("❌ Camera bado haijawa tayari.", "warning");
+    showToast(window.t("camera_not_ready"), "warning");
     return;
   }
-  canvas.width = video.videoWidth;
+  canvas.width  = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-  canvas.toBlob(blob => {
+  canvas.toBlob(function (blob) {
     capturedPhotos[kind] = blob;
-    const preview = document.getElementById(kind + "Preview");
+    var preview = document.getElementById(kind + "Preview");
     preview.src = URL.createObjectURL(blob);
     preview.classList.add("show");
     document.getElementById(kind + "UploadArea").style.display = "none";
     stopCamera(kind);
     if (kind === "report" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => markReportLocation(position.coords.latitude, position.coords.longitude));
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        markReportLocation(pos.coords.latitude, pos.coords.longitude);
+      });
     }
     if (kind === "identify") identifyCapturedPhoto(blob);
   }, "image/jpeg", 0.9);
 }
 
+/* ─── Map helpers ────────────────────────────────────────────── */
 function setReportCoordinates(lat, lng) {
-  document.getElementById("reportLat").value = Number(lat).toFixed(7);
-  document.getElementById("reportLng").value = Number(lng).toFixed(7);
+  document.getElementById("reportLat").value     = Number(lat).toFixed(7);
+  document.getElementById("reportLng").value     = Number(lng).toFixed(7);
   document.getElementById("reportLocation").value = Number(lat).toFixed(4) + ", " + Number(lng).toFixed(4);
   document.getElementById("reportLocInfo").classList.add("show");
   document.getElementById("reportLocText").textContent = "Lat: " + Number(lat).toFixed(4) + ", Lng: " + Number(lng).toFixed(4);
@@ -406,45 +1057,160 @@ function markReportLocation(lat, lng) {
 function initReportMap() {
   if (reportMap) return;
   reportMap = L.map("reportMap").setView([-6.7924, 39.2083], 12);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution: "&copy; OpenStreetMap"}).addTo(reportMap);
-  reportMap.on("click", event => markReportLocation(event.latlng.lat, event.latlng.lng));
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap" }).addTo(reportMap);
+  reportMap.on("click", function (e) { markReportLocation(e.latlng.lat, e.latlng.lng); });
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => markReportLocation(position.coords.latitude, position.coords.longitude));
+    navigator.geolocation.getCurrentPosition(function (p) {
+      markReportLocation(p.coords.latitude, p.coords.longitude);
+    });
   }
-  setTimeout(() => reportMap.invalidateSize(), 300);
+  setTimeout(function () { reportMap.invalidateSize(); }, 300);
 }
 
 function initBuyerMap() {
   if (buyerMap) return;
   buyerMap = L.map("buyerMap").setView([-6.7924, 39.2083], 12);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution: "&copy; OpenStreetMap"}).addTo(buyerMap);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap" }).addTo(buyerMap);
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => {
-      buyerMap.setView([position.coords.latitude, position.coords.longitude], 13);
-      document.getElementById("regLat").value = position.coords.latitude.toFixed(7);
-      document.getElementById("regLng").value = position.coords.longitude.toFixed(7);
+    navigator.geolocation.getCurrentPosition(function (p) {
+      buyerMap.setView([p.coords.latitude, p.coords.longitude], 13);
+      var latEl = document.getElementById("regLat");
+      var lngEl = document.getElementById("regLng");
+      if (latEl) latEl.value = p.coords.latitude.toFixed(7);
+      if (lngEl) lngEl.value = p.coords.longitude.toFixed(7);
     });
   }
-  setTimeout(() => buyerMap.invalidateSize(), 300);
+  setTimeout(function () { buyerMap.invalidateSize(); }, 300);
 }
 
-function handleReportPhoto(input) {
-  if (!input.files || !input.files[0]) return;
-  const preview = document.getElementById("reportPreview");
-  preview.src = URL.createObjectURL(input.files[0]);
-  preview.classList.add("show");
-  document.getElementById("reportUploadArea").style.display = "none";
-  initReportMap();
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => markReportLocation(position.coords.latitude, position.coords.longitude));
+/* ─── Chatbot ─────────────────────────────────────────────────── */
+var QUICK_QUESTIONS = {
+  sw: ["Jinsi ya kurecycle plastiki?", "Aina za taka ni zipi?", "Ninapataje mnunuzi?", "Bei ya taka ni ngapi?", "Jinsi ya kutuma ripoti?", "Compost ni nini?"],
+  en: ["How do I recycle plastic?", "What are the waste types?", "How do I find a buyer?", "What is the price of waste?", "How do I submit a report?", "What is composting?"],
+  fr: ["Comment recycler le plastique ?", "Quels sont les types de déchets ?", "Comment trouver un acheteur ?", "Quel est le prix des déchets ?", "Comment envoyer un signalement ?", "Qu'est-ce que le compost ?"]
+};
+
+var WELCOME_MSG = {
+  sw: "Jambo! 👋 Mimi ni TakaSmart Assistant. Uliza swali lolote kuhusu taka, recycling, wananunua au mfumo. 🌿",
+  en: "Hello! 👋 I'm TakaSmart Assistant. Ask me anything about waste, recycling, buyers, or the platform. 🌿",
+  fr: "Bonjour ! 👋 Je suis l'assistant TakaSmart. Posez n'importe quelle question sur les déchets, le recyclage ou la plateforme. 🌿"
+};
+
+function setChatLang(lang, btn) {
+  /* Sync local chatLang var and window.chatLang */
+  window.chatLang = lang;
+  chatLang = lang;
+  /* Sync chat lang bar active state */
+  document.querySelectorAll(".chat-lang-bar button").forEach(function (b) { b.classList.remove("active"); });
+  if (btn) {
+    btn.classList.add("active");
+  } else {
+    document.querySelectorAll(".chat-lang-bar button").forEach(function (b) {
+      if (b.dataset.lang === lang) b.classList.add("active");
+    });
+  }
+  /* Reset and re-render chatbot in the new language */
+  var messages = document.getElementById("chatMessages");
+  if (!messages) return;
+  messages.innerHTML = "";
+  appendChatMessage(WELCOME_MSG[lang] || WELCOME_MSG.sw, "bot");
+  renderQQ();
+}
+
+function toggleChat() {
+  var w = document.getElementById("chatWindow");
+  if (!w) return;
+  w.classList.toggle("open");
+  var badge = document.querySelector("#chatToggle .badge");
+  if (badge) badge.remove();
+  var messages = document.getElementById("chatMessages");
+  if (w.classList.contains("open") && messages && !messages.children.length) {
+    appendChatMessage(WELCOME_MSG[window.chatLang] || WELCOME_MSG.sw, "bot");
+    renderQQ();
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => {
-      document.getElementById("regLat").value = position.coords.latitude.toFixed(7);
-      document.getElementById("regLng").value = position.coords.longitude.toFixed(7);
+function renderQQ() { /* quick questions disabled */ }
+function sendQQ(q) { /* quick questions disabled */ }
+
+async function sendChat() {
+  var input   = document.getElementById("chatInput");
+  var message = input.value.trim();
+  if (!message) return;
+  appendChatMessage(message, "user");
+  input.value = "";
+  var req = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: message, lang: window.chatLang }) };
+  try {
+    var result = await apiJSON(API.chat, req);
+    appendChatMessage(result.reply || window.t("chat_no_reply"), "bot");
+  } catch (firstErr) {
+    try {
+      var result2 = await apiJSON(API.chat + "?retry=1", req);
+      appendChatMessage(result2.reply || window.t("chat_no_reply"), "bot");
+    } catch (secondErr) {
+      appendChatMessage(window.t("chat_server_down"), "bot");
+    }
+  }
+}
+
+function formatBotMessage(text) {
+  /* Convert plain-text markdown-style formatting to HTML */
+  var html = text
+    /* escape HTML first */
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    /* bold: **text** */
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    /* headers: ### text  or  ## text */
+    .replace(/^###\s+(.+)$/gm, '<p class="cb-h3">$1</p>')
+    .replace(/^##\s+(.+)$/gm,  '<p class="cb-h2">$1</p>')
+    /* numbered list: lines starting with 1️⃣ … or 1. */
+    .replace(/^(\d+[️⃣]?\.?\s)/gm, '<span class="cb-num">$1</span>')
+    /* bullet: lines starting with •, -, ✅, 🚫, ⚠️, 💡, 📌, ➡️ emoji */
+    .replace(/^([•\-])\s/gm, '<span class="cb-bullet">•</span> ')
+    /* emoji-led lines — keep as-is, just wrap */
+    /* horizontal rule: --- */
+    .replace(/^---$/gm, '<hr class="cb-hr">')
+    /* newlines → <br> */
+    .replace(/\n/g, "<br>");
+  return html;
+}
+
+function appendChatMessage(message, who) {
+  var box = document.getElementById("chatMessages");
+  var div = document.createElement("div");
+  div.className = "msg " + (who === "user" ? "msg-user" : "msg-bot");
+  if (who === "bot") {
+    var formatted = formatBotMessage(String(message || ""));
+    div.innerHTML =
+      '<div class="bot-icon"><i class="fas fa-robot"></i> TakaSmart</div>' +
+      '<div class="cb-body">' + formatted + '</div>';
+  } else {
+    div.textContent = message;
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ─── DOMContentLoaded ─────────────────────────────────────── */
+document.addEventListener("DOMContentLoaded", function () {
+  /* Sync local vars from i18n globals (i18n.js loads before app.js) */
+  currentLang = window.currentLang || "sw";
+  chatLang    = window.chatLang    || "sw";
+
+  /* GPS kwa fomu ya usajili */
+  if (document.getElementById("regLat") && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (p) {
+      document.getElementById("regLat").value = p.coords.latitude.toFixed(7);
+      document.getElementById("regLng").value = p.coords.longitude.toFixed(7);
     });
+  }
+
+  /* Ukurasa mkuu */
+  if (document.getElementById("section-home")) {
+    loadStats();
+    loadRecentReports();
+    showSection("home");
+    /* Sync chat lang bar na chatbot welcome */
+    setChatLang(window.currentLang || "sw");
   }
 });

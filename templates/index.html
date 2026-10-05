@@ -24,22 +24,27 @@
     </select>
   </div>
 </nav>
+
 <section class="hero" id="section-home">
   <h1 data-i18n="hero_title">🌍 TakaSmart – Usimamizi wa Taka kwa Ufasaha</h1>
-  <p data-i18n="hero_desc">Connect raia, mamlaka, na wananunua wa taka. Ripoti uchafu, tambua aina ya taka, na pata wananunua karibu nawe.</p>
+  <p data-i18n="hero_desc">Connect raia, mamlaka, na wananunua wa taka.</p>
   <div class="hero-actions">
     <button class="btn-primary" onclick="showSection('report')"><i class="fas fa-camera"></i> <span data-i18n="hero_report">Ripoti Uchafu</span></button>
     <button class="btn-secondary" onclick="showSection('identify')"><i class="fas fa-search"></i> <span data-i18n="hero_identify">Tambua Taka</span></button>
     <button class="btn-secondary" onclick="showSection('buyers')"><i class="fas fa-store"></i> <span data-i18n="hero_buyers">Tafuta Wananunua</span></button>
   </div>
 </section>
+
 <div class="stats-bar">
-  <div class="stat-card"><i class="fas fa-camera"></i><div class="stat-number" id="statReports">1,247</div><div class="stat-label" data-i18n="stat_reports">Ripoti Zilizowasilishwa</div></div>
-  <div class="stat-card"><i class="fas fa-check-circle"></i><div class="stat-number" id="statResolved">893</div><div class="stat-label" data-i18n="stat_resolved">Zimeitatuliwa</div></div>
-  <div class="stat-card"><i class="fas fa-store"></i><div class="stat-number" id="statBuyers">156</div><div class="stat-label" data-i18n="stat_buyers">Wananunua Waliosajiliwa</div></div>
+  <div class="stat-card"><i class="fas fa-camera"></i><div class="stat-number" id="statReports">0</div><div class="stat-label" data-i18n="stat_reports">Ripoti Zilizowasilishwa</div></div>
+  <div class="stat-card"><i class="fas fa-check-circle"></i><div class="stat-number" id="statResolved">0</div><div class="stat-label" data-i18n="stat_resolved">Zimeitatuliwa</div></div>
+  <div class="stat-card"><i class="fas fa-store"></i><div class="stat-number" id="statBuyers">0</div><div class="stat-label" data-i18n="stat_buyers">Wananunua Waliosajiliwa</div></div>
   <div class="stat-card"><i class="fas fa-recycle"></i><div class="stat-number">45 T</div><div class="stat-label" data-i18n="stat_recycled">Taka Zilizorecycle</div></div>
 </div>
+
 <div class="main-content">
+
+<!-- ═══════════════════ RIPOTI ═══════════════════ -->
 <section class="section" id="section-report">
   <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="report_title">Ripoti Eneo Lenye Uchafu</span></h2>
   <p class="section-desc" data-i18n="report_desc">Piga picha eneo lenye uchafu na tuma ripoti kwa mamlaka husika.</p>
@@ -50,121 +55,208 @@
         <div class="photo-upload-area" id="reportUploadArea">
           <i class="fas fa-camera"></i>
           <p data-i18n="report_upload_hint">Fungua camera kupiga picha ya eneo</p>
-          <button type="button" class="camera-button" onclick="startCamera('report')"><i class="fas fa-video"></i> Fungua Camera</button>
+          <button type="button" class="camera-button" onclick="startCamera('report')">
+            <i class="fas fa-video"></i> <span data-i18n="open_camera">Fungua Camera</span>
+          </button>
         </div>
-        <div class="camera-panel" id="reportCameraPanel"><video id="reportCamera" autoplay playsinline></video><canvas id="reportCanvas"></canvas><div><button type="button" class="btn btn-primary" onclick="captureCameraPhoto('report')"><i class="fas fa-camera"></i> Piga Picha</button><button type="button" class="btn btn-secondary" onclick="stopCamera('report')">Funga</button></div></div>
+        <div class="camera-panel" id="reportCameraPanel">
+          <video id="reportCamera" autoplay playsinline></video>
+          <canvas id="reportCanvas"></canvas>
+          <div>
+            <button type="button" class="btn btn-primary" onclick="captureCameraPhoto('report')">
+              <i class="fas fa-camera"></i> <span data-i18n="take_photo">Piga Picha</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="stopCamera('report')">
+              <span data-i18n="close">Funga</span>
+            </button>
+          </div>
+        </div>
         <img class="photo-preview" id="reportPreview">
-        <div class="form-group"><label data-i18n="report_location_label">📍 Mahali</label><input type="text" id="reportLocation" placeholder="Dar es Salaam, Tanzania"><input type="hidden" id="reportLat"><input type="hidden" id="reportLng"></div>
-        <div class="form-group"><label data-i18n="report_desc_label">📝 Maelezo</label><textarea id="reportDesc" rows="3" placeholder="Eleza aina ya uchafu na hali ya eneo..."></textarea></div>
-        <div class="form-group"><label data-i18n="report_authority_label">🏛️ Mamlaka Husika</label>
+        <div class="form-group">
+          <label data-i18n="report_location_label">📍 Mahali</label>
+          <input type="text" id="reportLocation" data-i18n-placeholder="location_placeholder">
+          <input type="hidden" id="reportLat">
+          <input type="hidden" id="reportLng">
+        </div>
+        <div class="form-group">
+          <label data-i18n="report_desc_label">📝 Maelezo</label>
+          <textarea id="reportDesc" rows="3" data-i18n-placeholder="report_placeholder"></textarea>
+        </div>
+        <div class="form-group">
+          <label data-i18n="report_authority_label">🏛️ Mamlaka Husika</label>
           <select id="reportAuthority">
-            <option value="">-- Chagua Mamlaka --</option>
-            <option value="municipal">Halmashauri ya Manispaa</option>
-            <option value="environment">Wizara ya Mazingira</option>
-            <option value="health">Idara ya Afya</option>
-            <option value="waste">Shirika la Taka</option>
+            <option value="" data-i18n-opt="choose_authority">-- Chagua Mamlaka --</option>
+            <option value="municipal" data-i18n-opt="municipal">Halmashauri ya Manispaa</option>
+            <option value="environment" data-i18n-opt="environment">Wizara ya Mazingira</option>
+            <option value="health" data-i18n-opt="health">Idara ya Afya</option>
+            <option value="waste" data-i18n-opt="waste">Shirika la Taka</option>
           </select>
         </div>
-        <button class="btn btn-primary" onclick="submitReport()" style="width:100%"><i class="fas fa-paper-plane"></i> <span data-i18n="report_submit">Tuma Ripoti</span></button>
+        <button class="btn btn-primary" onclick="submitReport()" style="width:100%">
+          <i class="fas fa-paper-plane"></i> <span data-i18n="report_submit">Tuma Ripoti</span>
+        </button>
       </div>
     </div>
     <div class="card">
-      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#00695C)"><i class="fas fa-map-marked-alt"></i><h3 data-i18n="report_map_title">Eneo kwenye Map</h3></div>
+      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#00695C)">
+        <i class="fas fa-map-marked-alt"></i><h3 data-i18n="report_map_title">Eneo kwenye Map</h3>
+      </div>
       <div class="card-body">
         <div class="map-container"><div id="reportMap"></div></div>
         <div class="location-info" id="reportLocInfo"><i class="fas fa-map-marker-alt"></i><span id="reportLocText"></span></div>
         <div style="margin-top:16px">
           <h4 style="color:var(--primary-dark);margin-bottom:10px" data-i18n="report_recent">Ripoti za Hivi Karibuni</h4>
-          <div id="recentReports">
-            <div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>Uchafu wa Plastiki - Mto Msimbazi</h4><p>📍 -6.8234, 39.2678</p></div><span class="report-status status-progress">Inashughulikiwa</span></div>
-            <div class="report-item"><div class="report-img"><i class="fas fa-camera"></i></div><div class="report-details"><h4>Taka za Kisasa - Kariakoo</h4><p>📍 -6.8280, 39.2800</p></div><span class="report-status status-resolved">Imetatuliwa</span></div>
-          </div>
+          <div id="recentReports"></div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ═══════════════════ TAMBUA ═══════════════════ -->
 <section class="section" id="section-identify">
   <h2 class="section-title"><i class="fas fa-search-plus"></i> <span data-i18n="identify_title">Tambua Taka na Jinsi ya Kurecycle</span></h2>
-  <p class="section-desc" data-i18n="identify_desc">Piga picha ya taka na mfumo utambue aina yake na kupendekeza njia bora ya kurecycle.</p>
+  <p class="section-desc" data-i18n="identify_desc">Piga picha ya taka na mfumo utambue aina yake.</p>
   <div class="cards-grid">
     <div class="card">
-      <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#F57F17)"><i class="fas fa-camera"></i><h3 data-i18n="identify_photo_title">Piga Picha ya Taka</h3></div>
+      <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#F57F17)">
+        <i class="fas fa-camera"></i><h3 data-i18n="identify_photo_title">Piga Picha ya Taka</h3>
+      </div>
       <div class="card-body">
         <div class="photo-upload-area" id="identifyUploadArea">
           <i class="fas fa-camera"></i>
           <p data-i18n="identify_upload_hint">Fungua camera kupiga picha ya taka</p>
-          <button type="button" class="camera-button" onclick="startCamera('identify')"><i class="fas fa-video"></i> Fungua Camera</button>
+          <button type="button" class="camera-button" onclick="startCamera('identify')">
+            <i class="fas fa-video"></i> <span data-i18n="open_camera">Fungua Camera</span>
+          </button>
         </div>
-        <div class="camera-panel" id="identifyCameraPanel"><video id="identifyCamera" autoplay playsinline></video><canvas id="identifyCanvas"></canvas><div><button type="button" class="btn btn-primary" onclick="captureCameraPhoto('identify')"><i class="fas fa-camera"></i> Piga Picha</button><button type="button" class="btn btn-secondary" onclick="stopCamera('identify')">Funga</button></div></div>
+        <div class="camera-panel" id="identifyCameraPanel">
+          <video id="identifyCamera" autoplay playsinline></video>
+          <canvas id="identifyCanvas"></canvas>
+          <div>
+            <button type="button" class="btn btn-primary" onclick="captureCameraPhoto('identify')">
+              <i class="fas fa-camera"></i> <span data-i18n="take_photo">Piga Picha</span>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="stopCamera('identify')">
+              <span data-i18n="close">Funga</span>
+            </button>
+          </div>
+        </div>
         <img class="photo-preview" id="identifyPreview">
         <div class="ai-result" id="aiResult"></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#004D40)"><i class="fas fa-recycle"></i><h3 data-i18n="identify_recycle_title">Njia za Kurecycle</h3></div>
+      <div class="card-header" style="background:linear-gradient(135deg,#00897B,#004D40)">
+        <i class="fas fa-recycle"></i><h3 data-i18n="identify_recycle_title">Njia za Kurecycle</h3>
+      </div>
       <div class="card-body">
         <div style="text-align:center;padding:40px;color:var(--text-light)" id="recycleGuidePlaceholder">
           <i class="fas fa-recycle" style="font-size:3rem;margin-bottom:10px"></i>
-          <p data-i18n="identify_recycle_hint">Piga picha ya taka kwanza ili kupata mapendekezo ya kurecycle</p>
+          <p data-i18n="identify_recycle_hint">Piga picha ya taka kwanza ili kupata mapendekezo</p>
         </div>
         <div id="recycleGuide" style="display:none"></div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ═══════════════════ WANANUNUA ═══════════════════ -->
 <section class="section" id="section-buyers">
   <h2 class="section-title"><i class="fas fa-store"></i> <span data-i18n="buyers_title">Tafuta Wananunua wa Taka</span></h2>
   <p class="section-desc" data-i18n="buyers_desc">Tafuta wananunua wa taka karibu nawe.</p>
   <div class="search-bar">
-    <input type="text" id="buyerSearch" placeholder="Tafuta kwa jina au eneo..." oninput="filterBuyers()">
+    <input type="text" id="buyerSearch" data-i18n-placeholder="buyer_search" oninput="filterBuyers()">
     <select id="buyerTypeFilter" onchange="filterBuyers()">
-      <option value="all">Aina Zote</option>
-      <option value="plastic">🧴 Plastiki</option>
-      <option value="paper">📦 Karatasi</option>
-      <option value="glass">🍶 Kioo</option>
-      <option value="metal">🔩 Chuma</option>
-      <option value="organic">🍂 Kikolojia</option>
-      <option value="ewaste">💻 E-Waste</option>
-      <option value="textile">👕 Vazi/Nguo</option>
+      <option value="all" data-i18n-opt="all_types">Aina Zote</option>
+      <option value="plastic" data-i18n-opt="plastic">🧴 Plastiki</option>
+      <option value="paper" data-i18n-opt="paper">📦 Karatasi</option>
+      <option value="glass" data-i18n-opt="glass">🍶 Kioo</option>
+      <option value="metal" data-i18n-opt="metal">🔩 Chuma</option>
+      <option value="organic" data-i18n-opt="organic">🍂 Kikolojia</option>
+      <option value="ewaste" data-i18n-opt="ewaste">💻 E-Waste</option>
+      <option value="textile" data-i18n-opt="textile">👕 Vazi/Nguo</option>
     </select>
   </div>
   <div class="map-container"><div id="buyerMap"></div></div>
   <div id="buyersList"></div>
 </section>
+
+<!-- ═══════════════════ JISAJILI ═══════════════════ -->
 <section class="section" id="section-register">
   <h2 class="section-title"><i class="fas fa-user-plus"></i> <span data-i18n="register_title">Jisajili kama Mnunuzi wa Taka</span></h2>
   <p class="section-desc" data-i18n="register_desc">Wewe ni mnunuzi wa taka? Jisajili hapa.</p>
   <div class="card" id="regFormCard">
-    <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#E65100)"><i class="fas fa-user-plus"></i><h3 data-i18n="register_form_title">Fomu ya Usajili</h3></div>
+    <div class="card-header" style="background:linear-gradient(135deg,#FF8F00,#E65100)">
+      <i class="fas fa-user-plus"></i><h3 data-i18n="register_form_title">Fomu ya Usajili</h3>
+    </div>
     <div class="card-body">
-      <div class="form-group"><label>👤 Jina la Biashara</label><input type="text" id="regName" placeholder="Mfano: GreenRecycle Ltd"></div>
-      <div class="form-group"><label>📧 Barua Pepe</label><input type="email" id="regEmail" placeholder="info@greenrecycle.co.tz"></div>
-      <div class="form-group"><label>📱 Simu</label><input type="tel" id="regPhone" placeholder="+255 7XX XXX XXX"></div>
-      <div class="form-group"><label>📍 Eneo</label><input type="text" id="regLocation" placeholder="Dar es Salaam, Kariakoo"><input type="hidden" id="regLat"><input type="hidden" id="regLng"></div>
-      <div class="form-group"><label>♻️ Aina za Taka Unazonunua</label>
+      <div class="form-group">
+        <label data-i18n="business_name">👤 Jina la Biashara</label>
+        <input type="text" id="regName" data-i18n-placeholder="reg_name_placeholder">
+      </div>
+      <div class="form-group">
+        <label data-i18n="email">📧 Barua Pepe</label>
+        <input type="email" id="regEmail" placeholder="info@greenrecycle.co.tz">
+      </div>
+      <div class="form-group">
+        <label data-i18n="phone">📱 Simu</label>
+        <input type="tel" id="regPhone" placeholder="+255 7XX XXX XXX">
+      </div>
+      <div class="form-group">
+        <label data-i18n="location">📍 Eneo</label>
+        <input type="text" id="regLocation" data-i18n-placeholder="reg_location_placeholder">
+        <input type="hidden" id="regLat">
+        <input type="hidden" id="regLng">
+      </div>
+      <div class="form-group">
+        <label data-i18n="waste_types">♻️ Aina za Taka Unazonunua</label>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px">
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="plastic"> 🧴 Plastiki</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="paper"> 📦 Karatasi</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="glass"> 🍶 Kioo</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="metal"> 🔩 Chuma</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="organic"> 🍂 Kikolojia</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="ewaste"> 💻 E-Waste</label>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer"><input type="checkbox" value="textile"> 👕 Vazi/Nguo</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="plastic"> 🧴 <span data-i18n="plastic">Plastiki</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="paper"> 📦 <span data-i18n="paper">Karatasi</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="glass"> 🍶 <span data-i18n="glass">Kioo</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="metal"> 🔩 <span data-i18n="metal">Chuma</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="organic"> 🍂 <span data-i18n="organic">Kikolojia</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="ewaste"> 💻 <span data-i18n="ewaste">E-Waste</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.9rem;cursor:pointer">
+            <input type="checkbox" value="textile"> 👕 <span data-i18n="textile">Vazi/Nguo</span>
+          </label>
         </div>
       </div>
-      <div class="form-group"><label>📝 Maelezo ya Biashara</label><textarea id="regDesc" rows="3" placeholder="Eleza biashara yako..."></textarea></div>
-      <button class="btn btn-primary" onclick="submitRegistration()" style="width:100%"><i class="fas fa-check-circle"></i> Jisajili Sasa</button>
+      <div class="form-group">
+        <label data-i18n="business_description">📝 Maelezo ya Biashara</label>
+        <textarea id="regDesc" rows="3" data-i18n-placeholder="business_placeholder"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="submitRegistration()" style="width:100%">
+        <i class="fas fa-check-circle"></i> <span data-i18n="register_now">Jisajili Sasa</span>
+      </button>
     </div>
   </div>
   <div class="reg-success" id="regSuccess">
     <i class="fas fa-check-circle"></i>
-    <h3>Usajili Umefanikiwa!</h3>
-    <p style="margin:10px 0">Umefanikiwa kusajiliwa kama mnunuzi wa taka.</p>
-    <button class="btn btn-primary" onclick="showSection('buyers')"><i class="fas fa-store"></i> Tazama Wananunua</button>
+    <h3 data-i18n="registration_success">Usajili Umefanikiwa!</h3>
+    <p style="margin:10px 0" data-i18n="registration_success_desc">Umefanikiwa kusajiliwa kama mnunuzi wa taka.</p>
+    <button class="btn btn-primary" onclick="showSection('buyers')">
+      <i class="fas fa-store"></i> <span data-i18n="view_buyers">Tazama Wananunua</span>
+    </button>
   </div>
 </section>
-</div>
+
+</div><!-- end main-content -->
+
+<!-- ═══════════════════ CHATBOT ═══════════════════ -->
 <button class="chatbot-toggle" onclick="toggleChat()" id="chatToggle">
   <i class="fas fa-comments"></i>
   <div class="badge">1</div>
@@ -175,21 +267,27 @@
     <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
   </div>
   <div class="chat-lang-bar">
-    <button class="active" onclick="setChatLang('sw',this)">🇹🇿 SW</button>
-    <button onclick="setChatLang('en',this)">🇬🇧 EN</button>
-    <button onclick="setChatLang('fr',this)">🇫🇷 FR</button>
+    <button data-lang="sw" class="active" onclick="setChatLang('sw',this)">🇹🇿 SW</button>
+    <button data-lang="en" onclick="setChatLang('en',this)">🇬🇧 EN</button>
+    <button data-lang="fr" onclick="setChatLang('fr',this)">🇫🇷 FR</button>
   </div>
   <div class="chat-messages" id="chatMessages"></div>
-  <div class="quick-questions" id="quickQuestions"></div>
   <div class="chat-input-area">
-    <input type="text" id="chatInput" placeholder="Andika swali lako..." onkeydown="if(event.key==='Enter')sendChat()">
+    <input type="text" id="chatInput" data-i18n-placeholder="chat_placeholder" onkeydown="if(event.key==='Enter')sendChat()">
     <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
-<div class="toast" id="toast"></div>
 
+<div class="toast" id="toast"></div>
+<div class="analysis-modal" id="analysisModal" aria-hidden="true">
+  <div class="analysis-dialog">
+    <button class="chat-close" onclick="closeAnalysisModal()" aria-label="Funga"><i class="fas fa-times"></i></button>
+    <div id="analysisModalContent"></div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ url_for('static', filename='js/app.js', v='20260914-chat-fix') }}"></script>
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js', v='20261001') }}"></script>
 </body>
 </html>

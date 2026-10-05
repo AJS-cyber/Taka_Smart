@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS reports (
   photo VARCHAR(500),
   lat DECIMAL(10,7) NULL,
   lng DECIMAL(10,7) NULL,
+  photo_type VARCHAR(80) NULL,
+  photo_meaning TEXT NULL,
   status ENUM('pending','in_progress','resolved') DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -23,5 +25,27 @@ CREATE TABLE IF NOT EXISTS buyers (
   types JSON NOT NULL,
   lat DECIMAL(10,7) NULL,
   lng DECIMAL(10,7) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS authorities (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(180) NOT NULL,
+  authority_type VARCHAR(80) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  description TEXT,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(120) NOT NULL UNIQUE,
+  email VARCHAR(180) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'reporter',
+  permissions JSON NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
